@@ -1,0 +1,780 @@
+/* Admin styles: responsive sidebar + content card, table, buttons, modal */
+:root {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --accent: #0d6efd;
+    --muted: #6c757d;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --radius: 8px;
+    --shadow: 0 6px 18px rgba(18, 38, 63, 0.08);
+    --sidebar-bg: #f4f6f8;
+    --icon-color: #0b3a66;
+    font-family: Inter, system-ui, -apple-system, 'Segoe UI', 'Times New Roman', Times, serif, 'Helvetica Neue', Arial;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: #222
+}
+
+a {
+    color: var(--accent);
+}
+
+.admin-shell {
+    display: flex;
+    min-height: 100vh
+}
+
+.sidebar {
+    width: 300px;
+    background-color: #f4f5f6;
+    padding: 20px;
+    position: relative;
+    border-right: 1px solid #444444;
+}
+
+.sidebar h2 {
+    margin: 0 0 12px;
+    font-size: 20px
+}
+
+.sidebar nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0
+}
+
+.sidebar nav li {
+    margin: 8px 0
+}
+
+.sidebar a {
+    display: inline-block;
+    padding: 6px 4px;
+    color: #0b3a66;
+    text-decoration: none
+}
+
+.sidebar-footer {
+    position: absolute;
+    bottom: 20px;
+    left: 20px
+}
+
+.user-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px
+}
+
+.user-badge img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #eee
+}
+
+.user-badge .name {
+    font-weight: 600
+}
+
+.sidebar.collapsed {
+    width: 56px;
+    padding: 8px 6px;
+    border-right: none;
+}
+
+/* hide content */
+.sidebar.collapsed h2,
+.sidebar.collapsed nav,
+.sidebar.collapsed .user-badge,
+.sidebar.collapsed .sidebar-footer,
+.sidebar.collapsed .nav-text {
+    display: none;
+}
+
+/* center icon container */
+.sidebar.collapsed>div {
+    display: flex;
+    justify-content: center;
+}
+
+/* nav icon */
+.sidebar .nav-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+}
+
+.sidebar.collapsed .nav-icon {
+    margin-right: 0;
+}
+
+.sidebar.collapsed::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    /* divider đúng biên sidebar */
+    width: 1px;
+    height: 100%;
+    background: #444444;
+}
+
+/* ===== Toggle button ===== */
+.sidebar #sidebarToggle {
+    background: transparent;
+}
+
+.sidebar.collapsed #sidebarToggle {
+    position: absolute;
+    top: 12px;
+    right: 0;
+    /* cùng vị trí với divider */
+    transform: translateX(50%);
+    /* đẩy ra nửa chiều rộng button */
+
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ffffff;
+    border: 1px solid #e6e6e6;
+    box-shadow: 0 6px 18px rgba(18, 38, 63, 0.08);
+    z-index: 10;
+}
+
+.btn#sidebarToggle,
+.menu-button {
+    background-color: var(--sidebar-bg);
+    color: var(--icon-color);
+    padding: 6px 8px;
+    font-size: 30px;
+    line-height: 1;
+    border-radius: 6px;
+}
+
+.main-content {
+    flex: 1;
+    padding: 48px
+        /*size*/
+}
+
+.main-header {
+    margin-bottom: 18px
+}
+
+.main-header h1 {
+    margin: 0;
+    font-size: 28px
+        /*size*/
+}
+
+.content-area {
+    max-width: 1500;
+    /*size*/
+    margin: 0 auto
+}
+
+
+/* Responsive table wrapper to avoid layout break from long words */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.table-responsive table {
+    min-width: 1024px;
+    /*size*/
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-responsive th,
+.table-responsive td {
+    max-width: 460px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.table-responsive td.action {
+    max-width: 140px;
+    white-space: nowrap;
+}
+
+.card {
+    background: var(--card);
+    padding: 32px
+}
+
+.card1{
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px
+}
+
+.card h3 {
+    margin-top: 0
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px
+}
+
+.controls .search-box input {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    width: 220px
+}
+
+.entries-select {
+    padding: 4px 8px
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent
+}
+
+table thead th {
+    background: #f7f8fa;
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    color: var(--muted)
+}
+
+table tbody td {
+    padding: 10px;
+    border-bottom: 1px solid #f0f0f0
+}
+
+table tbody tr:hover {
+    background: #fafbfd
+}
+
+.small {
+    font-size: 13px;
+    color: var(--muted)
+}
+
+.btn {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 0;
+    cursor: pointer;
+    font-size: 14px
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: #fff
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: #fff
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: #fff
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: #222
+}
+
+.btn:focus {
+    outline: none
+}
+
+.pagination {
+    margin-top: 12px;
+    text-align: center
+}
+
+.pagination .btn {
+    margin: 0 4px;
+    padding: 6px 10px;
+    min-width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+}
+
+/* Ensure pagination sits inside card and centers */
+.card .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-top: 10px
+}
+
+.card .pagination .ellipsis {
+    display: inline-block;
+    padding: 6px 10px;
+    color: var(--muted)
+}
+
+.btn.active {
+    background: var(--accent);
+    color: #fff
+}
+
+.info-text {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 8px
+}
+
+/* Modal - Basic overlay styles only, specific styling in section CSS */
+.modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 10, 10, 0.4);
+    z-index: 1200
+}
+
+.modal.show {
+    display: flex
+}
+
+.modal-content {
+    background: var(--card);
+    padding: 18px;
+    border-radius: 10px;
+    min-width: 320px;
+    max-width: 520px
+}
+
+.modal-header h2 {
+    margin: 0 0 10px
+}
+
+.error {
+    color: var(--danger);
+    background: #fff0f0;
+    padding: 8px;
+    border-radius: 6px
+}
+
+@media(max-width:800px) {
+    .sidebar {
+        display: none
+    }
+
+    .content-area {
+        padding: 12px
+    }
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    background: #222;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    opacity: 0;
+    transform: translateY(12px);
+    transition: all .28s ease;
+    z-index: 1300
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0)
+}
+
+.toast.success {
+    background: linear-gradient(90deg, #198754, #0ca678)
+}
+
+.toast.error {
+    background: linear-gradient(90deg, #dc3545, #c82333)
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f5f5;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    box-sizing: border-box;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    font-size: 28px;
+    color: #333;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #333;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-box input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 250px;
+}
+
+.entries-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th {
+    background: #f8f9fa;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #ddd;
+    color: #333;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+tr:hover {
+    background: #f9f9f9;
+}
+
+.action-btns {
+    display: flex;
+    gap: 6px;
+}
+
+.action-btns button {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.pagination button,
+.pagination span {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.pagination button:hover {
+    background: #f0f0f0;
+}
+
+.pagination .active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.info-text {
+    color: #666;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+/* ===== Consolidated Modal and Form Styles ===== */
+
+/* Standard modal sizing for all forms */
+#userModal .modal-content,
+#customerModal .modal-content,
+#productModal .modal-content,
+#inventoryModal .modal-content {
+    max-width: 500px;
+    width: 100%;
+}
+
+/* Order modal is larger due to complex layout */
+#orderModal .modal-content {
+    max-width: 700px;
+    width: 100%;
+}
+
+/* Consistent form styling across all modals */
+#userModal .form-group,
+#customerModal .form-group,
+#productModal .form-group,
+#orderModal .form-group,
+#inventoryModal .form-group {
+    margin-bottom: 20px;
+}
+
+#userModal .form-group label,
+#customerModal .form-group label,
+#productModal .form-group label,
+#orderModal .form-group label,
+#inventoryModal .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+#userModal .form-group input,
+#userModal .form-group select,
+#customerModal .form-group input,
+#customerModal .form-group select,
+#customerModal .form-group textarea,
+#productModal .form-group input,
+#productModal .form-group select,
+#productModal .form-group textarea,
+#orderModal .form-group input,
+#orderModal .form-group select,
+#inventoryModal .form-group input,
+#inventoryModal .form-group select,
+#inventoryModal .form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+#userModal .form-group input:focus,
+#userModal .form-group select:focus,
+#customerModal .form-group input:focus,
+#customerModal .form-group select:focus,
+#customerModal .form-group textarea:focus,
+#productModal .form-group input:focus,
+#productModal .form-group select:focus,
+#productModal .form-group textarea:focus,
+#orderModal .form-group input:focus,
+#orderModal .form-group select:focus,
+#inventoryModal .form-group input:focus,
+#inventoryModal .form-group select:focus,
+#inventoryModal .form-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+#customerModal .form-group textarea,
+#productModal .form-group textarea,
+#inventoryModal .form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+#userModal .modal-actions,
+#customerModal .modal-actions,
+#productModal .modal-actions,
+#orderModal .modal-actions,
+#inventoryModal .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e1e5e9;
+}
+
+/* ===== Order-specific styles ===== */
+.status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status.confirmed {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status.shipped {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status.delivered {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status.cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.order-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.order-item select,
+.order-item input {
+    flex: 1;
+}
+
+.modal.large .modal-content {
+    max-width: 800px;
+}
+
+#orderDetailsContent ul {
+    list-style: none;
+    padding: 0;
+}
+
+#orderDetailsContent li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* ===== Inventory-specific styles ===== */
+.type {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.type.inbound {
+    background: #d4edda;
+    color: #155724;
+}
+
+.type.outbound {
+    background: #f8d7da;
+    color: #721c24;
+}
