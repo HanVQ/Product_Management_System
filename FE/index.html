@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Signup</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="form-container">
+            <!-- Login Form -->
+            <div id="login-form" class="form-box active">
+                <h2>Login</h2>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-email">Email:</label>
+                        <input type="email" id="login-email" name="email" required placeholder="Enter your email">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password">Password:</label>
+                        <input type="password" id="login-password" name="password" required
+                            placeholder="Enter your password">
+                    </div>
+
+                    <button type="submit" class="btn-primary">Login</button>
+                    <p class="oauth-separator">Or</p>
+                    <a href="/api/auth/google" class="google-login-button">
+                        <img src="logo.png" alt="Google Icon">
+                        Sign in with Google
+                    </a>
+
+                    <p class="toggle-text">Don't have an account? <a href="#" onclick="toggleForms()">Sign Up</a></p>
+                </form>
+                <div id="login-message" class="message"></div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-form" class="form-box">
+                <h2>Sign Up</h2>
+                <form onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="signup-name">Full Name:</label>
+                        <input type="text" id="signup-name" name="name" required placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email:</label>
+                        <input type="email" id="signup-email" name="email" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password:</label>
+                        <input type="password" id="signup-password" name="password" required
+                            placeholder="Enter a password (min 6 chars)">
+                    </div>
+                    <button type="submit" class="btn-primary">Sign Up</button>
+                    <p class="toggle-text">Already have an account? <a href="#" onclick="toggleForms()">Login</a></p>
+                </form>
+                <div id="signup-message" class="message"></div>
+            </div>
+
+            <!-- Dashboard (shown after login) -->
+            <div id="dashboard" class="form-box">
+                <h2>Welcome!</h2>
+                <div class="dashboard-content">
+                    <p>Hello, <span id="user-name"></span>!</p>
+                    <p>Email: <span id="user-email"></span></p>
+                    <p>User ID: <span id="user-id"></span></p>
+                    <div class="token-box">
+                        <label>Your JWT Token:</label>
+                        <textarea id="token-display" readonly></textarea>
+                        <button type="button" class="btn-secondary" onclick="copyToken()">Copy Token</button>
+                    </div>
+                    <button type="button" class="btn-danger" onclick="handleLogout()">Logout</button>
+                </div>
+                <div id="dashboard-message" class="message"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

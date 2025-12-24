@@ -1,0 +1,68 @@
+<div class="container" id="inventory-page">
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3>Inventory Transactions</h3>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="openInventoryModal()">Add Transaction</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label>Show</label>
+                <select class="entries-select" id="entriesPerPage">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                </select>
+                <label>entries</label>
+            </div>
+            <div class="search-box">
+                <label>Search:</label>
+                <input type="text" id="searchInput" placeholder="Search by product or type">
+            </div>
+        </div>
+
+        <div id="results"></div>
+
+        <div class="pagination" id="pagination"></div>
+        <div class="info-text" id="infoText"></div>
+    </div>
+</div>
+
+<!-- Add/Edit Transaction Modal -->
+<div class="modal" id="inventoryModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Add Transaction</h2>
+        </div>
+        <div id="modalError" class="error" style="display:none;"></div>
+        <form onsubmit="saveTransaction(event)">
+            <div class="form-group">
+                <label>Product:</label>
+                <select id="transactionProduct" required>
+                    <option value="">Select Product</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Type:</label>
+                <select id="transactionType" required>
+                    <option value="inbound">Inbound</option>
+                    <option value="outbound">Outbound</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Quantity:</label>
+                <input type="number" id="transactionQuantity" min="1" required>
+            </div>
+            <div class="form-group">
+                <label>Reason:</label>
+                <textarea id="transactionReason"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeInventoryModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
