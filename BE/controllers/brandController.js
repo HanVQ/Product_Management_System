@@ -32,6 +32,16 @@ class BrandController {
         }
     }
 
+    // Bulk create brand
+    async createMany(req, res) {
+            try {
+                const brand = await brandService.createBrands(req.body);
+                res.json({ success: true, data: brand });
+            } catch (err) {
+                res.status(400).json({ success: false, message: err.message });
+            }
+    }
+
     // Update brand
     async update(req, res) {
         try {

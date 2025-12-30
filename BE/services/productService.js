@@ -45,6 +45,35 @@ class ProductService {
         }
     }
 
+    // Bulk create products
+    async createProducts(productsArray) {
+        try {
+            if (!Array.isArray(productsArray) || productsArray.length === 0) {
+                throw new Error('Provide an array of products to create');
+            }
+
+            // Basic validation: each item must have name and price
+            const toInsert = productsArray.map((p, idx) => {
+                if (!p.name || p.price === undefined) {
+                    throw new Error(`Product at index ${idx} missing required fields (name, price)`);
+                }
+                return {
+                    name: p.name,
+                    description: p.description || '',
+                    price: p.price,
+                    stock: p.stock || 0,
+                    productType: p.productType || null,
+                    brand: p.brand || null
+                };
+            });
+
+            const created = await Product.insertMany(toInsert, { ordered: true });
+            return created;
+        } catch (error) {
+            throw new Error(`Error bulk creating products: ${error.message}`);
+        }
+    }
+
     async updateProduct(id, updateData) {
         try {
             const product = await Product.findById(id);

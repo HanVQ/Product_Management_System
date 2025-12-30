@@ -46,6 +46,31 @@ class ProductTypeService {
         }
     }
 
+    // Bulk create product types
+    async createProductTypes(productTypesArray) {
+            try {
+                if (!Array.isArray(productTypesArray) || productTypesArray.length === 0) {
+                    throw new Error('Provide an array of product types to create');
+                }
+    
+                // Basic validation: each item must have name and price
+                const toInsert = productTypesArray.map((p, idx) => {
+                    if (!p.name) {
+                        throw new Error(`ProductType at index ${idx} missing required fields (name)`);
+                    }
+                    return {
+                        name: p.name,
+                        description: p.description || '',
+                    };
+                });
+
+                const created = await ProductType.insertMany(toInsert, { ordered: true });
+                return created;
+            } catch (error) {
+                throw new Error(`Error bulk creating product types: ${error.message}`);
+            }
+    }
+
     async updateProductType(id, updateData) {
         try {
             const { name, description } = updateData;

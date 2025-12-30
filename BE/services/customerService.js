@@ -48,6 +48,32 @@ class CustomerService {
         }
     }
 
+    // Bulk create customers
+    async createCustomers(customersArray) {
+            try {
+                if (!Array.isArray(customersArray) || customersArray.length === 0) {
+                    throw new Error('Provide an array of customers to create');
+                }
+
+                // Basic validation: each item must have name and email
+                const toInsert = customersArray.map((c, idx) => {
+                    if (!c.name || !c.email) {
+                        throw new Error(`Customer at index ${idx} missing required fields (name, email)`);
+                    }
+                    return {
+                        name: c.name,
+                        email: c.email.toLowerCase(),
+                        phone: c.phone || null,
+                        address: c.address || null
+                    };
+                });
+                const created = await Customer.insertMany(toInsert, { ordered: true });
+                return created;
+            } catch (error) {
+                throw new Error(`Error bulk creating customers: ${error.message}`);
+            }
+    }
+
     async updateCustomer(id, updateData) {
         try {
             const customer = await Customer.findById(id);
