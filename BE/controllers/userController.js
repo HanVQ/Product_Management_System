@@ -32,6 +32,16 @@ class UserController {
         }
     }
 
+    // Bulk create users
+    async createMany(req, res) {
+        try {
+            const users = await userService.createUsers(req.body);
+            res.status(201).json({ success: true, users });
+        } catch (err) {
+            res.status(400).json({ success: false, message: err.message });
+        }
+    }
+
     // Update user (admin)
     async update(req, res) {
         try {

@@ -32,6 +32,16 @@ class ProductController {
         }
     }
 
+    // Bulk create products
+    async createMany(req, res) {
+        try {
+            const product = await productService.createProducts(req.body);
+            res.status(201).json({ success: true, product});
+        } catch (err) {
+            res.status(400).json({ success: false, message: err.message });
+        }
+    }
+
     // Update product
     async update(req, res) {
         try {
