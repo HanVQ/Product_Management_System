@@ -102,40 +102,64 @@ window.productModule = (function () {
         const token = getToken();
         const out = document.getElementById('results');
         if (!token) { out.innerText = 'No token available. Please login as admin.'; return; }
-        const res = await fetch('/api/products', { headers: { authorization: token } });
+        
+        // Build query params from current filters
+        const searchQuery = document.getElementById('searchInput').value || '';
+        const filterType = (document.getElementById('filterProductType') && document.getElementById('filterProductType').value) || '';
+        const filterBrand = (document.getElementById('filterBrand') && document.getElementById('filterBrand').value) || '';
+        const filterStock = (document.getElementById('filterStockStatus') && document.getElementById('filterStockStatus').value) || '';
+        
+        // Build query string
+        const params = new URLSearchParams();
+        if (searchQuery) params.append('search', searchQuery);
+        if (filterType) params.append('productType', filterType);
+        if (filterBrand) params.append('brand', filterBrand);
+        if (filterStock) params.append('stockStatus', filterStock);
+        if (currentSortField) {
+            params.append('sortField', currentSortField);
+            params.append('sortOrder', currentSortOrder === 'desc' ? -1 : 1);
+        }
+        params.append('page', currentPage);
+        const limit = Math.max(1, parseInt(document.getElementById('entriesPerPage').value) || 10);
+        params.append('limit', limit);
+        
+        const res = await fetch(`/api/products?${params.toString()}`, { headers: { authorization: token } });
         const data = await res.json();
         if (!data.success) { out.innerText = 'Error loading products: ' + (data.message || JSON.stringify(data)); return; }
+        
         allProducts = data.products || [];
-        // attach product type, brand name, and stock status for easier rendering and filtering
+        // attach product type and brand name for rendering
         allProducts.forEach(p => {
             const pt = allProductTypes.find(t => String(t._id) === String(p.productType));
             p._productTypeName = pt ? pt.name : '';
             const b = allBrands.find(x => String(x._id) === String(p.brand || p.brandId || ''));
             p._brandName = b ? b.name : '';
-            // compute stock status locally if backend doesn't provide it
-            p._stockStatus = p.stockStatus || computeStockStatus(p.stock);
+            p._stockStatus = computeStockStatus(p.stock);
         });
+        
         filteredProducts = [...allProducts];
-        currentPage = 1;
-        renderTable();
+        
+        // Update pagination info from backend
+        const pagination = data.pagination || { page: 1, limit, total: 0, pages: 1 };
+        
+        renderTable(pagination);
     }
 
-    function renderTable() {
-        const perPage = Math.max(1, parseInt(document.getElementById('entriesPerPage').value) || 10);
-        const start = (currentPage - 1) * perPage;
-        const end = start + perPage;
-        // apply sorting before paginating
-        sortProducts(filteredProducts);
-        const pageData = filteredProducts.slice(start, end);
+    function renderTable(pagination) {
+        const perPage = pagination ? pagination.limit : (Math.max(1, parseInt(document.getElementById('entriesPerPage').value) || 10));
+        
+        // Data is already paginated from backend, no need to slice
+        const pageData = filteredProducts;
 
-                let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Description</th><th>Price</th><th>Stock</th><th>Stock Status</th><th>Brand</th><th>Product Type</th><th style="width:140px">Action</th></tr></thead><tbody>';
-                                pageData.forEach((p, idx) => {
-                                                const productTypeName = p._productTypeName || (allProductTypes.find(pt => String(pt._id) === String(p.productType)) || {}).name || '';
-                                                const brandName = p._brandName || (allBrands.find(br => String(br._id) === String(p.brand || p.brandId || '')) || {}).name || '';
-                                                const stockStatus = p._stockStatus || computeStockStatus(p.stock);
-                                                const statusClass = stockStatus.replace(/\s+/g, '-');
-                        html += `<tr>
-                <td>${start + idx + 1}</td>
+        let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Description</th><th>Price</th><th>Stock</th><th>Stock Status</th><th>Brand</th><th>Product Type</th><th style="width:140px">Action</th></tr></thead><tbody>';
+        pageData.forEach((p, idx) => {
+            const productTypeName = p._productTypeName || (allProductTypes.find(pt => String(pt._id) === String(p.productType)) || {}).name || '';
+            const brandName = p._brandName || (allBrands.find(br => String(br._id) === String(p.brand || p.brandId || '')) || {}).name || '';
+            const stockStatus = p._stockStatus || computeStockStatus(p.stock);
+            const statusClass = stockStatus.replace(/\s+/g, '-');
+            const rowNum = (pagination ? (pagination.page - 1) * pagination.limit : currentPage - 1 * perPage) + idx + 1;
+            html += `<tr>
+                <td>${rowNum}</td>
                 <td>${p.name || ''}</td>
                 <td>${(p.description || '').substring(0, 50)}${(p.description || '').length > 50 ? '...' : ''}</td>
                 <td>${p.price.toLocaleString('vi-VN')} ₫</td>
@@ -144,54 +168,28 @@ window.productModule = (function () {
                 <td>${brandName}</td>
                 <td>${productTypeName}</td>
                 <td class="action"><div class="action-btns">
-                                        <button class="btn btn-warning" onclick="editProductModal('${p._id}', '${escapeHtml(p.name || '')}', '${escapeHtml(p.description || '')}', '${p.price || 0}', '${p.stock || 0}', '${p.productType || ''}', '${p.brand || p.brandId || ''}')">Edit</button>
+                    <button class="btn btn-warning" onclick="editProductModal('${p._id}', '${escapeHtml(p.name || '')}', '${escapeHtml(p.description || '')}', '${p.price || 0}', '${p.stock || 0}', '${p.productType || ''}', '${p.brand || p.brandId || ''}')">Edit</button>
                     <button class="btn btn-danger" onclick="deleteProduct('${p._id}')">Delete</button>
                 </div></td>
             </tr>`;
-                });
+        });
         html += '</tbody></table></div>';
         document.getElementById('results').innerHTML = html;
-        renderPagination(perPage);
-        document.getElementById('infoText').innerText = `Showing ${start + 1} to ${Math.min(end, filteredProducts.length)} of ${filteredProducts.length} entries (filtered from ${allProducts.length} total entries)`;
+        renderPagination(pagination || { page: currentPage, limit: perPage, total: allProducts.length, pages: Math.ceil(allProducts.length / perPage) });
+        
+        const start = (pagination ? (pagination.page - 1) * pagination.limit : (currentPage - 1) * perPage) + 1;
+        const end = Math.min(start + pageData.length - 1, pagination ? pagination.total : allProducts.length);
+        document.getElementById('infoText').innerText = `Showing ${start} to ${end} of ${pagination ? pagination.total : allProducts.length} entries`;
     }
 
     function sortProducts(arr) {
-        if (!currentSortField) return;
-        const field = currentSortField;
-        const dir = currentSortOrder === 'desc' ? -1 : 1;
-
-        arr.sort((a, b) => {
-            let va = a[field];
-            let vb = b[field];
-
-            // map brand/ productType fields to their display names
-            if (field === 'brand') {
-                va = a._brandName || '';
-                vb = b._brandName || '';
-            }
-            if (field === 'name') {
-                va = (a.name || '').toString();
-                vb = (b.name || '').toString();
-            }
-            if (field === 'price' || field === 'stock') {
-                va = Number(va || 0);
-                vb = Number(vb || 0);
-            }
-
-            // compare
-            if (typeof va === 'string' && typeof vb === 'string') {
-                return va.localeCompare(vb, undefined, { numeric: true }) * dir;
-            }
-            if (typeof va === 'number' && typeof vb === 'number') {
-                return (va - vb) * dir;
-            }
-            // fallback
-            return String(va).localeCompare(String(vb)) * dir;
-        });
+        // Sorting is now handled by the backend, no client-side sorting needed
+        // This function is kept for reference but not used
+        return;
     }
 
-    function renderPagination(perPage) {
-        const totalPages = Math.max(1, Math.ceil(filteredProducts.length / perPage));
+    function renderPagination(pagination) {
+        const totalPages = pagination.pages || 1;
         const maxButtons = 7;
         let parts = [];
 
@@ -231,24 +229,9 @@ window.productModule = (function () {
     }
 
     function filterProducts() {
-        const query = document.getElementById('searchInput').value.toLowerCase();
-        const filterType = (document.getElementById('filterProductType') && document.getElementById('filterProductType').value) || '';
-        const filterBrand = (document.getElementById('filterBrand') && document.getElementById('filterBrand').value) || '';
-        const filterStock = (document.getElementById('filterStockStatus') && document.getElementById('filterStockStatus').value) || '';
-
-        filteredProducts = allProducts.filter(p => {
-            const matchesQuery = (p.name || '').toLowerCase().includes(query) || (p._brandName || '').toLowerCase().includes(query);
-            if (!matchesQuery) return false;
-            if (filterType && String(p.productType) !== String(filterType)) return false;
-            if (filterBrand && String(p.brand || p.brandId || '') !== String(filterBrand)) return false;
-            if (filterStock) {
-                const status = (p._stockStatus || computeStockStatus(p.stock)).toLowerCase();
-                if (status !== filterStock.toLowerCase()) return false;
-            }
-            return true;
-        });
+        // Reset page to 1 when filtering changes
         currentPage = 1;
-        renderTable();
+        loadProducts();
     }
 
     function toggleSortPanel() {
@@ -264,7 +247,8 @@ window.productModule = (function () {
         const parts = val.split(':');
         currentSortField = parts[0] || '';
         currentSortOrder = parts[1] || 'asc';
-        renderTable();
+        currentPage = 1; // Reset to page 1
+        loadProducts(); // Reload with new sort
         // hide panel after applying
         const panel = document.getElementById('sortPanel'); if (panel) panel.style.display = 'none';
     }
@@ -273,7 +257,8 @@ window.productModule = (function () {
         currentSortField = '';
         currentSortOrder = 'asc';
         const opt = document.getElementById('sortOption'); if (opt) opt.value = 'name:asc';
-        renderTable();
+        currentPage = 1;
+        loadProducts();
     }
 
     function toggleFilterPanel() {
@@ -283,7 +268,8 @@ window.productModule = (function () {
     }
 
     function applyFilters() {
-        filterProducts();
+        currentPage = 1;
+        loadProducts();
         document.getElementById('filterPanel').style.display = 'none';
     }
 
@@ -292,7 +278,8 @@ window.productModule = (function () {
         const f2 = document.getElementById('filterBrand'); if (f2) f2.value = '';
         const f3 = document.getElementById('filterStockStatus'); if (f3) f3.value = '';
         document.getElementById('searchInput').value = '';
-        filterProducts();
+        currentPage = 1;
+        loadProducts();
     }
 
     function openAddModal() {
@@ -466,7 +453,7 @@ window.productModule = (function () {
         if (applySortBtn) applySortBtn.addEventListener('click', applySort);
         const clearSortBtn = document.getElementById('clearSortBtn');
         if (clearSortBtn) clearSortBtn.addEventListener('click', clearSort);
-        document.getElementById('entriesPerPage').addEventListener('change', () => { currentPage = 1; renderTable(); });
+        document.getElementById('entriesPerPage').addEventListener('change', () => { currentPage = 1; loadProducts(); });
         document.getElementById('searchInput').addEventListener('input', filterProducts);
     }
 
