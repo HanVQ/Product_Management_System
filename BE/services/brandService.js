@@ -46,6 +46,31 @@ class BrandService {
         }
     }
 
+    // Bulk create brands
+    async createBrands(brandsArray) {
+        try {
+            if (!Array.isArray(brandsArray) || brandsArray.length === 0) {
+                throw new Error('Provide an array of brands to create');
+            }
+
+            // Basic validation: each item must have name and price
+            const toInsert = brandsArray.map((p, idx) => {
+                if (!p.name) {
+                    throw new Error(`Brand at index ${idx} missing required fields (name)`);
+                }
+                return {
+                    name: p.name,
+                    description: p.description || ''
+                };
+            });
+
+            const created = await Brand.insertMany(toInsert, { ordered: true });
+            return created;
+        } catch (error) {
+            throw new Error(`Error bulk creating brands: ${error.message}`);
+        }
+    }
+
     async updateBrand(id, updateData) {
         try {
             const { name, description } = updateData;

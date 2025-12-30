@@ -56,6 +56,60 @@ class UserService {
         }
     }
 
+    // Bulk create users
+    async createUsers(usersArray) {
+        try {
+            if (!Array.isArray(usersArray) || usersArray.length === 0) {
+                throw new Error('Provide an array of users to create');
+            }
+
+            // Validate and prepare data
+            const toInsert = [];
+            for (let idx = 0; idx < usersArray.length; idx++) {
+                const u = usersArray[idx];
+                if (!u.name || !u.email) {
+                    throw new Error(`User at index ${idx} missing required fields (name, email)`);
+                }
+
+                // Check for duplicate email in input array
+                const emailLower = u.email.toLowerCase();
+                const isDuplicateInArray = toInsert.some(item => item.email === emailLower);
+                if (isDuplicateInArray) {
+                    throw new Error(`Duplicate email at index ${idx}: ${u.email}`);
+                }
+
+                // Hash password if provided
+                let hashed = null;
+                if (u.password) {
+                    hashed = await bcrypt.hash(u.password, 10);
+                }
+
+                toInsert.push({
+                    name: u.name,
+                    email: emailLower,
+                    password: hashed,
+                    role: u.role || 'user'
+                });
+            }
+
+            // Check for existing emails in DB
+            const existingEmails = await User.find({ email: { $in: toInsert.map(u => u.email) } });
+            if (existingEmails.length > 0) {
+                throw new Error(`Emails already exist: ${existingEmails.map(u => u.email).join(', ')}`);
+            }
+
+            const created = await User.insertMany(toInsert);
+            // Remove passwords from response
+            return created.map(u => {
+                const obj = u.toObject();
+                delete obj.password;
+                return obj;
+            });
+        } catch (error) {
+            throw new Error(`Error bulk creating users: ${error.message}`);
+        }
+    }
+
     async updateUser(id, updateData) {
         try {
             const user = await User.findById(id);

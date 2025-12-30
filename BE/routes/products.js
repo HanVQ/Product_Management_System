@@ -8,6 +8,7 @@ router.use(authenticate, requireRole('admin'));
 
 router.get('/', productController.list);
 router.post('/', productController.create);
+router.post('/bulk', productController.createMany);
 router.get('/:id', productController.get);
 router.put('/:id', productController.update);
 router.delete('/:id', productController.remove);
