@@ -1,11 +1,21 @@
 const productService = require('../services/productService');
 
 class ProductController {
-    // List products
+    // List products with filtering, sorting, and pagination
     async list(req, res) {
         try {
-            const products = await productService.listProducts();
-            res.json({ success: true, products });
+            const filters = {
+                search: req.query.search || '',
+                productType: req.query.productType || '',
+                brand: req.query.brand || '',
+                stockStatus: req.query.stockStatus || '',
+                sortField: req.query.sortField || 'createdAt',
+                sortOrder: req.query.sortOrder || -1,
+                page: req.query.page || 1,
+                limit: req.query.limit || 10
+            };
+            const result = await productService.listProducts(filters);
+            res.json({ success: true, ...result });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });
         }
