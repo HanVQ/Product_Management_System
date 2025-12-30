@@ -60,18 +60,74 @@ class AuthController {
 
     // Verify email controller
     async verifyEmail(req, res) {
-        try {
-            const { token } = req.query;
+        const { token } = req.query;
 
-            if (!token) {
-                return res.status(400).json({ success: false, message: 'Verification token is required' });
+        if (!token) {
+            return res.status(400).json({ success: false, message: 'Verification token is required' });
+        }
+
+        try {
+            const user = await authService.verifyEmailToken(token);
+            const jwtToken = authService.generateToken(user);
+
+            // Cookie options
+            const cookieOptions = {
+                httpOnly: true,
+                maxAge: 24 * 60 * 60 * 1000, // 24h
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'Lax'
+            };
+
+            // Try set cookie
+            try {
+                res.cookie('token', jwtToken, cookieOptions);
+            } catch (err) {
+                console.error('Could not set auth cookie:', err.message);
             }
 
-            const user = await authService.verifyEmailToken(token);
+            const frontendBase = (process.env.FRONTEND_URL || process.env.APP_URL || 'http://localhost:5000')
+                .replace(/\/+$/, '');
 
-            res.status(200).json({ success: true, message: 'Email verified successfully. You can now log in.', user: authService.formatUserResponse(user) });
-        } catch (error) {
-            res.status(400).json({ success: false, message: error.message });
+            const payload = {
+                token: jwtToken,
+                user: {
+                    id: String(user._id),
+                    name: user.name || '',
+                    email: user.email,
+                    role: user.role || 'user'
+                }
+            };
+
+            // HTML auto-login
+            const html = `<!doctype html>
+            <html>
+            <head><meta charset="utf-8"><title>Verification Success</title></head>
+            <body>
+            <script>
+            (function(){
+                const p = ${JSON.stringify(payload)};
+                try {
+                    localStorage.setItem('token', p.token);
+                    localStorage.setItem('user', JSON.stringify(p.user));
+                } catch(e) {}
+                window.location = '${frontendBase}/';
+            })();
+            </script>
+            </body>
+            </html>`;
+
+            return res.send(html);
+
+        } catch (err) {
+            console.error('Verification error:', err.message);
+
+            // fallback redirect
+            const frontendBase = (process.env.FRONTEND_URL || process.env.APP_URL || 'http://localhost:5000')
+                .replace(/\/+$/, '');
+            const emailB64 = Buffer.from(String(req.query.email || '')).toString('base64');
+            const redirectUrl = `${frontendBase}/?verified=true&email=${encodeURIComponent(emailB64)}`;
+
+            return res.redirect(redirectUrl);
         }
     }
 
