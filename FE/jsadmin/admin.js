@@ -37,7 +37,10 @@ const adminApp = (function () {
       const raw = localStorage.getItem('user');
       const user = raw ? JSON.parse(raw) : null;
       const el = document.getElementById('sidebarUser');
-      if (!el) return;
+      if (!el) { 
+        return; 
+      }
+
       if (user) {
         const img = user.avatar ? `<img src="${user.avatar}" alt="avatar">` : `<div style="width:40px;height:40px;border-radius:50%;background:#eee"></div>`;
         el.innerHTML = `${img}<div class="name">${escapeHtml(user.name || user.email || 'Admin')}</div>`;
@@ -49,7 +52,12 @@ const adminApp = (function () {
 
   function showToast(message, type = 'success') {
     let t = document.getElementById('globalToast');
-    if (!t) { t = document.createElement('div'); t.id = 'globalToast'; t.className = 'toast'; document.body.appendChild(t); }
+    if (!t) { 
+      t = document.createElement('div'); 
+      t.id = 'globalToast'; 
+      t.className = 'toast'; 
+      document.body.appendChild(t); 
+    }
     t.className = `toast show ${type}`;
     t.innerText = message;
     setTimeout(() => { t.className = 'toast'; }, 3000);
@@ -72,9 +80,13 @@ const adminApp = (function () {
   // Toggle sidebar collapsed state and persist in localStorage
   function toggleSidebar(save = true) {
     const sb = document.getElementById('sidebar');
-    if (!sb) return;
+    if (!sb) { 
+      return; 
+    }
     sb.classList.toggle('collapsed');
-    if (save) { localStorage.setItem('sidebarCollapsed', sb.classList.contains('collapsed') ? '1' : '0'); }
+    if (save) { 
+      localStorage.setItem('sidebarCollapsed', sb.classList.contains('collapsed') ? '1' : '0'); 
+    }
   }
 
   function init() {
