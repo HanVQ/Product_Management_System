@@ -12,10 +12,16 @@ window.brandModule = (function () {
     async function loadBrands() {
         const token = getToken();
         const out = document.getElementById('results');
-        if (!token) { out.innerText = 'No token available. Please login as admin.'; return; }
+        if (!token) {
+            out.innerText = 'No token available. Please login as admin.';
+            return;
+        }
         const res = await fetch('/api/brands', { headers: { authorization: token } });
         const data = await res.json();
-        if (!data.data) { out.innerText = 'Error loading brands: ' + (data.message || JSON.stringify(data)); return; }
+        if (!data.data) {
+            out.innerText = 'Error loading brands: ' + (data.message || JSON.stringify(data));
+            return;
+        }
         allBrands = data.data || [];
         filteredBrands = [...allBrands];
         currentPage = 1;
@@ -52,28 +58,45 @@ window.brandModule = (function () {
         let parts = [];
 
         function pushBtn(label, page, cls) {
-            if (page === null) return;
+            if (page === null) {
+                return;
+            }
             const c = cls ? cls : (page === currentPage ? 'btn active' : 'btn');
             parts.push(`<button class="${c}" onclick="goToPage(${page})">${label}</button>`);
         }
 
-        if (currentPage > 1) { pushBtn('<<', 1, 'btn'); pushBtn('<', currentPage - 1, 'btn'); }
+        if (currentPage > 1) {
+            pushBtn('<<', 1, 'btn');
+            pushBtn('<', currentPage - 1, 'btn');
+        }
 
         if (totalPages <= maxButtons) {
-            for (let i = 1; i <= totalPages; i++) pushBtn(i, i);
+            for (let i = 1; i <= totalPages; i++) {
+                pushBtn(i, i);
+            }
         } else {
             let startPage = Math.max(1, currentPage - 3);
             let endPage = Math.min(totalPages, startPage + maxButtons - 1);
-            if (endPage - startPage < maxButtons - 1) startPage = Math.max(1, endPage - maxButtons + 1);
-            for (let i = startPage; i <= endPage; i++) pushBtn(i, i);
+            if (endPage - startPage < maxButtons - 1) {
+                startPage = Math.max(1, endPage - maxButtons + 1);
+            }
+            for (let i = startPage; i <= endPage; i++) {
+                pushBtn(i, i);
+            }
         }
 
-        if (currentPage < totalPages) { pushBtn('>', currentPage + 1, 'btn'); pushBtn('>>', totalPages, 'btn'); }
+        if (currentPage < totalPages) {
+            pushBtn('>', currentPage + 1, 'btn');
+            pushBtn('>>', totalPages, 'btn');
+        }
 
         document.getElementById('pagination').innerHTML = parts.join('');
     }
 
-    function goToPage(page) { currentPage = page; renderTable(); }
+    function goToPage(page) {
+        currentPage = page;
+        renderTable();
+    }
 
     function changePage(page) {
         currentPage = page;
@@ -125,7 +148,9 @@ window.brandModule = (function () {
 
     function closeModal() {
         const brandModal = document.getElementById('brandModal');
-        if (brandModal) brandModal.classList.remove('show');
+        if (brandModal) {
+            brandModal.classList.remove('show');
+        }
     }
 
     async function saveBrand(event) {
@@ -189,9 +214,13 @@ window.brandModule = (function () {
         window.changePage = changePage;
         window.goToPage = goToPage;
         const entries = document.getElementById('entriesPerPage');
-        if (entries) entries.addEventListener('change', () => { currentPage = 1; renderTable(); });
+        if (entries) {
+            entries.addEventListener('change', () => { currentPage = 1; renderTable(); });
+        }
         const search = document.getElementById('searchInput');
-        if (search) search.addEventListener('input', filterBrands);
+        if (search) {
+            search.addEventListener('input', filterBrands);
+        }
     }
 
     return { init };

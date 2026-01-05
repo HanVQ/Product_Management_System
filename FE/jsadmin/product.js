@@ -2,8 +2,8 @@
 window.productModule = (function () {
     let allProducts = [];
     let filteredProducts = [];
-        let allProductTypes = [];
-        let allBrands = [];
+    let allProductTypes = [];
+    let allBrands = [];
     let currentPage = 1;
     let editingProductId = null;
     let currentSortField = '';
@@ -40,7 +40,7 @@ window.productModule = (function () {
     function populateProductTypeDropdown() {
         const select = document.getElementById('productCategory');
         if (!select) return;
-        
+
         const currentValue = select.value;
         select.innerHTML = '<option value="">Select a product type</option>';
         allProductTypes.forEach(pt => {
@@ -49,7 +49,7 @@ window.productModule = (function () {
             option.textContent = pt.name;
             select.appendChild(option);
         });
-        
+
         if (currentValue) {
             select.value = currentValue;
         }
@@ -65,7 +65,9 @@ window.productModule = (function () {
                 option.textContent = pt.name;
                 filterSelect.appendChild(option);
             });
-            if (cur) filterSelect.value = cur;
+            if (cur) {
+                filterSelect.value = cur;
+            }
         }
     }
 
@@ -94,27 +96,40 @@ window.productModule = (function () {
                 option.textContent = b.name;
                 filterBrand.appendChild(option);
             });
-            if (cur) filterBrand.value = cur;
+            if (cur) {
+                filterBrand.value = cur;
+            }
         }
     }
 
     async function loadProducts() {
         const token = getToken();
         const out = document.getElementById('results');
-        if (!token) { out.innerText = 'No token available. Please login as admin.'; return; }
-        
+        if (!token) {
+            out.innerText = 'No token available. Please login as admin.';
+            return;
+        }
+
         // Build query params from current filters
         const searchQuery = document.getElementById('searchInput').value || '';
         const filterType = (document.getElementById('filterProductType') && document.getElementById('filterProductType').value) || '';
         const filterBrand = (document.getElementById('filterBrand') && document.getElementById('filterBrand').value) || '';
         const filterStock = (document.getElementById('filterStockStatus') && document.getElementById('filterStockStatus').value) || '';
-        
+
         // Build query string
         const params = new URLSearchParams();
-        if (searchQuery) params.append('search', searchQuery);
-        if (filterType) params.append('productType', filterType);
-        if (filterBrand) params.append('brand', filterBrand);
-        if (filterStock) params.append('stockStatus', filterStock);
+        if (searchQuery) {
+            params.append('search', searchQuery);
+        }
+        if (filterType) {
+            params.append('productType', filterType);
+        }
+        if (filterBrand) {
+            params.append('brand', filterBrand);
+        }
+        if (filterStock) {
+            params.append('stockStatus', filterStock);
+        }
         if (currentSortField) {
             params.append('sortField', currentSortField);
             params.append('sortOrder', currentSortOrder === 'desc' ? -1 : 1);
@@ -122,11 +137,14 @@ window.productModule = (function () {
         params.append('page', currentPage);
         const limit = Math.max(1, parseInt(document.getElementById('entriesPerPage').value) || 10);
         params.append('limit', limit);
-        
+
         const res = await fetch(`/api/products?${params.toString()}`, { headers: { authorization: token } });
         const data = await res.json();
-        if (!data.success) { out.innerText = 'Error loading products: ' + (data.message || JSON.stringify(data)); return; }
-        
+        if (!data.success) {
+            out.innerText = 'Error loading products: ' + (data.message || JSON.stringify(data));
+            return;
+        }
+
         allProducts = data.products || [];
         // attach product type and brand name for rendering
         allProducts.forEach(p => {
@@ -136,18 +154,18 @@ window.productModule = (function () {
             p._brandName = b ? b.name : '';
             p._stockStatus = computeStockStatus(p.stock);
         });
-        
+
         filteredProducts = [...allProducts];
-        
+
         // Update pagination info from backend
         const pagination = data.pagination || { page: 1, limit, total: 0, pages: 1 };
-        
+
         renderTable(pagination);
     }
 
     function renderTable(pagination) {
         const perPage = pagination ? pagination.limit : (Math.max(1, parseInt(document.getElementById('entriesPerPage').value) || 10));
-        
+
         // Data is already paginated from backend, no need to slice
         const pageData = filteredProducts;
 
@@ -176,7 +194,7 @@ window.productModule = (function () {
         html += '</tbody></table></div>';
         document.getElementById('results').innerHTML = html;
         renderPagination(pagination || { page: currentPage, limit: perPage, total: allProducts.length, pages: Math.ceil(allProducts.length / perPage) });
-        
+
         const start = (pagination ? (pagination.page - 1) * pagination.limit : (currentPage - 1) * perPage) + 1;
         const end = Math.min(start + pageData.length - 1, pagination ? pagination.total : allProducts.length);
         document.getElementById('infoText').innerText = `Showing ${start} to ${end} of ${pagination ? pagination.total : allProducts.length} entries`;
@@ -194,34 +212,58 @@ window.productModule = (function () {
         let parts = [];
 
         function pushBtn(label, page, cls) {
-            if (page === null) { parts.push(`<span class="ellipsis">${label}</span>`); return; }
+            if (page === null) {
+                parts.push(`<span class="ellipsis">${label}</span>`);
+                return;
+            }
             const c = cls ? cls : (page === currentPage ? 'btn active' : 'btn');
             parts.push(`<button class="${c}" onclick="goToPage(${page})">${label}</button>`);
         }
 
-        if (currentPage > 1) { pushBtn('<<', 1, 'btn'); pushBtn('<', currentPage - 1, 'btn'); }
-        else { pushBtn('<<', 1, 'btn'); pushBtn('<', null, 'btn'); }
+        if (currentPage > 1) {
+            pushBtn('<<', 1, 'btn');
+            pushBtn('<', currentPage - 1, 'btn');
+        } else {
+            pushBtn('<<', 1, 'btn');
+            pushBtn('<', null, 'btn');
+        }
 
         if (totalPages <= maxButtons) {
-            for (let i = 1; i <= totalPages; i++) pushBtn(i, i);
+            for (let i = 1; i <= totalPages; i++) {
+                pushBtn(i, i);
+            }
         } else {
             const left = Math.max(2, currentPage - 2);
             const right = Math.min(totalPages - 1, currentPage + 2);
 
             pushBtn(1, 1);
-            if (left > 2) pushBtn('...', null);
-            for (let i = left; i <= right; i++) pushBtn(i, i);
-            if (right < totalPages - 1) pushBtn('...', null);
+            if (left > 2) {
+                pushBtn('...', null);
+            }
+            for (let i = left; i <= right; i++) {
+                pushBtn(i, i);
+            }
+            if (right < totalPages - 1) {
+                pushBtn('...', null);
+            }
             pushBtn(totalPages, totalPages);
         }
 
-        if (currentPage < totalPages) { pushBtn('>', currentPage + 1, 'btn'); pushBtn('>>', totalPages, 'btn'); }
-        else { pushBtn('>', null, 'btn'); pushBtn('>>', totalPages, 'btn'); }
+        if (currentPage < totalPages) {
+            pushBtn('>', currentPage + 1, 'btn');
+            pushBtn('>>', totalPages, 'btn');
+        } else {
+            pushBtn('>', null, 'btn');
+            pushBtn('>>', totalPages, 'btn');
+        }
 
         document.getElementById('pagination').innerHTML = parts.join('');
     }
 
-    function goToPage(page) { currentPage = page; renderTable(); }
+    function goToPage(page) {
+        currentPage = page;
+        renderTable();
+    }
 
     function changePage(page) {
         currentPage = page;
@@ -274,9 +316,18 @@ window.productModule = (function () {
     }
 
     function clearFilters() {
-        const f1 = document.getElementById('filterProductType'); if (f1) f1.value = '';
-        const f2 = document.getElementById('filterBrand'); if (f2) f2.value = '';
-        const f3 = document.getElementById('filterStockStatus'); if (f3) f3.value = '';
+        const f1 = document.getElementById('filterProductType');
+        if (f1) {
+            f1.value = '';
+        }
+        const f2 = document.getElementById('filterBrand');
+        if (f2) {
+            f2.value = '';
+        }
+        const f3 = document.getElementById('filterStockStatus');
+        if (f3) {
+            f3.value = '';
+        }
         document.getElementById('searchInput').value = '';
         currentPage = 1;
         loadProducts();
@@ -309,7 +360,9 @@ window.productModule = (function () {
         modalError.style.display = 'none';
         // set initial stock status badge and listen to changes
         const stockStatusSpan = document.getElementById('productStockStatus');
-        if (stockStatusSpan) stockStatusSpan.innerText = computeStockStatus(0);
+        if (stockStatusSpan) {
+            stockStatusSpan.innerText = computeStockStatus(0);
+        }
         if (productStock) {
             productStock.addEventListener('input', onStockInputChange);
         }
@@ -343,7 +396,9 @@ window.productModule = (function () {
         modalError.style.display = 'none';
         // update stock status badge and listen to stock changes
         const stockStatusSpan = document.getElementById('productStockStatus');
-        if (stockStatusSpan) stockStatusSpan.innerText = computeStockStatus(parseInt(stock || 0));
+        if (stockStatusSpan) {
+            stockStatusSpan.innerText = computeStockStatus(parseInt(stock || 0));
+        }
         if (productStock) {
             productStock.removeEventListener('input', onStockInputChange);
             productStock.addEventListener('input', onStockInputChange);
@@ -361,7 +416,9 @@ window.productModule = (function () {
     function onStockInputChange(e) {
         const v = parseInt(e.target.value || 0);
         const span = document.getElementById('productStockStatus');
-        if (span) span.innerText = computeStockStatus(v);
+        if (span) {
+            span.innerText = computeStockStatus(v);
+        }
     }
 
     async function saveProduct(event) {
@@ -405,8 +462,12 @@ window.productModule = (function () {
     // Helper: compute stock status (mirror of backend logic)
     function computeStockStatus(stock) {
         const s = (typeof stock === 'number' && !isNaN(stock)) ? stock : parseInt(stock) || 0;
-        if (s === 0) return 'out of stock';
-        if (s <= 5) return 'low stock';
+        if (s === 0) {
+            return 'out of stock';
+        }
+        if (s <= 5) {
+            return 'low stock';
+        }
         return 'in stock';
     }
 
@@ -441,18 +502,30 @@ window.productModule = (function () {
         window.goToPage = goToPage;
         // filter controls
         const filterBtn = document.getElementById('filterToggleBtn');
-        if (filterBtn) filterBtn.addEventListener('click', toggleFilterPanel);
+        if (filterBtn) {
+            filterBtn.addEventListener('click', toggleFilterPanel);
+        }
         const applyBtn = document.getElementById('applyFiltersBtn');
-        if (applyBtn) applyBtn.addEventListener('click', applyFilters);
+        if (applyBtn) {
+            applyBtn.addEventListener('click', applyFilters);
+        }
         const clearBtn = document.getElementById('clearFiltersBtn');
-        if (clearBtn) clearBtn.addEventListener('click', clearFilters);
+        if (clearBtn) {
+            clearBtn.addEventListener('click', clearFilters);
+        }
         // sort controls
         const sortBtn = document.getElementById('sortToggleBtn');
-        if (sortBtn) sortBtn.addEventListener('click', toggleSortPanel);
+        if (sortBtn) {
+            sortBtn.addEventListener('click', toggleSortPanel);
+        }
         const applySortBtn = document.getElementById('applySortBtn');
-        if (applySortBtn) applySortBtn.addEventListener('click', applySort);
+        if (applySortBtn) {
+            applySortBtn.addEventListener('click', applySort);
+        }
         const clearSortBtn = document.getElementById('clearSortBtn');
-        if (clearSortBtn) clearSortBtn.addEventListener('click', clearSort);
+        if (clearSortBtn) {
+            clearSortBtn.addEventListener('click', clearSort);
+        }
         document.getElementById('entriesPerPage').addEventListener('change', () => { currentPage = 1; loadProducts(); });
         document.getElementById('searchInput').addEventListener('input', filterProducts);
     }

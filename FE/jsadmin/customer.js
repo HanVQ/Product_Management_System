@@ -12,7 +12,10 @@ window.customerModule = (function () {
     async function loadCustomers() {
         const token = getToken();
         const out = document.getElementById('results');
-        if (!token) { out.innerText = 'No token available. Please login as admin.'; return; }
+        if (!token) {
+            out.innerText = 'No token available. Please login as admin.';
+            return;
+        }
         const res = await fetch('/api/customers', { headers: { authorization: token } });
         const data = await res.json();
         if (!data.success) { out.innerText = 'Error loading customers: ' + (data.message || JSON.stringify(data)); return; }
@@ -54,13 +57,21 @@ window.customerModule = (function () {
         let parts = [];
 
         function pushBtn(label, page, cls) {
-            if (page === null) { parts.push(`<span class="ellipsis">${label}</span>`); return; }
+            if (page === null) {
+                parts.push(`<span class="ellipsis">${label}</span>`);
+                return;
+            }
             const c = cls ? cls : (page === currentPage ? 'btn active' : 'btn');
             parts.push(`<button class="${c}" onclick="goToPage(${page})">${label}</button>`);
         }
 
-        if (currentPage > 1) { pushBtn('<<', 1, 'btn'); pushBtn('<', currentPage - 1, 'btn'); }
-        else { pushBtn('<<', 1, 'btn'); pushBtn('<', null, 'btn'); }
+        if (currentPage > 1) {
+            pushBtn('<<', 1, 'btn');
+            pushBtn('<', currentPage - 1, 'btn');
+        } else {
+            pushBtn('<<', 1, 'btn');
+            pushBtn('<', null, 'btn');
+        }
 
         if (totalPages <= maxButtons) {
             for (let i = 1; i <= totalPages; i++) pushBtn(i, i);
@@ -69,19 +80,33 @@ window.customerModule = (function () {
             const right = Math.min(totalPages - 1, currentPage + 2);
 
             pushBtn(1, 1);
-            if (left > 2) pushBtn('...', null);
-            for (let i = left; i <= right; i++) pushBtn(i, i);
-            if (right < totalPages - 1) pushBtn('...', null);
+            if (left > 2) {
+                pushBtn('...', null);
+            }
+            for (let i = left; i <= right; i++) {
+                pushBtn(i, i);
+            }
+            if (right < totalPages - 1) {
+                pushBtn('...', null);
+            }
             pushBtn(totalPages, totalPages);
         }
 
-        if (currentPage < totalPages) { pushBtn('>', currentPage + 1, 'btn'); pushBtn('>>', totalPages, 'btn'); }
-        else { pushBtn('>', null, 'btn'); pushBtn('>>', totalPages, 'btn'); }
+        if (currentPage < totalPages) {
+            pushBtn('>', currentPage + 1, 'btn');
+            pushBtn('>>', totalPages, 'btn');
+        } else {
+            pushBtn('>', null, 'btn');
+            pushBtn('>>', totalPages, 'btn');
+        }
 
         document.getElementById('pagination').innerHTML = parts.join('');
     }
 
-    function goToPage(page) { currentPage = page; renderTable(); }
+    function goToPage(page) {
+        currentPage = page;
+        renderTable();
+    }
 
     function changePage(page) {
         currentPage = page;
