@@ -2,7 +2,7 @@ const brandService = require('../services/brandService');
 
 class BrandController {
     // List brands
-    async list(req, res) {
+    async listBrand(req, res) {
         try {
             const brands = await brandService.listBrands();
             res.json({ success: true, data: brands });
@@ -12,7 +12,7 @@ class BrandController {
     }
 
     // Get brand by ID
-    async get(req, res) {
+    async getBrand(req, res) {
         try {
             const { id } = req.params;
             const brand = await brandService.getBrandById(id);
@@ -23,7 +23,7 @@ class BrandController {
     }
 
     // Create brand
-    async create(req, res) {
+    async createBrand(req, res) {
         try {
             const brand = await brandService.createBrand(req.body);
             res.json({ success: true, data: brand });
@@ -33,7 +33,7 @@ class BrandController {
     }
 
     // Bulk create brand
-    async createMany(req, res) {
+    async createManyBrand(req, res) {
             try {
                 const brand = await brandService.createBrands(req.body);
                 res.json({ success: true, data: brand });
@@ -43,7 +43,7 @@ class BrandController {
     }
 
     // Update brand
-    async update(req, res) {
+    async updateBrand(req, res) {
         try {
             const { id } = req.params;
             const brand = await brandService.updateBrand(id, req.body);
@@ -54,7 +54,7 @@ class BrandController {
     }
 
     // Delete brand
-    async remove(req, res) {
+    async removeBrand(req, res) {
         try {
             const { id } = req.params;
             const brand = await brandService.deleteBrand(id);
