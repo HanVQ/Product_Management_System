@@ -2,7 +2,7 @@ const orderService = require('../services/orderService');
 
 class OrderController {
     // List orders
-    async list(req, res) {
+    async listOrder(req, res) {
         try {
             const orders = await orderService.listOrders();
             res.json({ success: true, orders });
@@ -12,7 +12,7 @@ class OrderController {
     }
 
     // Get single order
-    async get(req, res) {
+    async getOrder(req, res) {
         try {
             const { id } = req.params;
             const order = await orderService.getOrderById(id);
@@ -23,7 +23,7 @@ class OrderController {
     }
 
     // Create order
-    async create(req, res) {
+    async createOrder(req, res) {
         try {
             const order = await orderService.createOrder(req.body, req.user);
             res.status(201).json({ success: true, order });
@@ -33,7 +33,7 @@ class OrderController {
     }
 
     // Update order
-    async update(req, res) {
+    async updateOrder(req, res) {
         try {
             const { id } = req.params;
             const order = await orderService.updateOrder(id, req.body);
@@ -44,7 +44,7 @@ class OrderController {
     }
 
     // Delete order
-    async remove(req, res) {
+    async removeOrder(req, res) {
         try {
             const { id } = req.params;
             await orderService.deleteOrder(id);
