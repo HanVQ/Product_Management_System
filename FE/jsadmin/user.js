@@ -12,10 +12,16 @@ window.userModule = (function () {
   async function loadUsers() {
     const token = getToken();
     const out = document.getElementById('results');
-    if (!token) { out.innerText = 'No token available. Please login as admin.'; return; }
+    if (!token) { 
+      out.innerText = 'No token available. Please login as admin.'; 
+      return; 
+    }
     const res = await fetch('/api/users', { headers: { authorization: token } });
     const data = await res.json();
-    if (!data.success) { out.innerText = 'Error loading users: ' + (data.message || JSON.stringify(data)); return; }
+    if (!data.success) { 
+      out.innerText = 'Error loading users: ' + (data.message || JSON.stringify(data)); 
+      return; 
+    }
     allUsers = data.users || [];
     filteredUsers = [...allUsers];
     currentPage = 1;
@@ -54,14 +60,22 @@ window.userModule = (function () {
     let parts = [];
 
     function pushBtn(label, page, cls) {
-      if (page === null) { parts.push(`<span class="ellipsis">${label}</span>`); return; }
+      if (page === null) { 
+        parts.push(`<span class="ellipsis">${label}</span>`); 
+        return; 
+      }
       const c = cls ? cls : (page === currentPage ? 'btn active' : 'btn');
       parts.push(`<button class="${c}" onclick="goToPage(${page})">${label}</button>`);
     }
 
     // First / Prev
-    if (currentPage > 1) { pushBtn('<<', 1, 'btn'); pushBtn('<', currentPage - 1, 'btn'); }
-    else { pushBtn('<<', 1, 'btn'); pushBtn('<', null, 'btn'); }
+    if (currentPage > 1) { 
+      pushBtn('<<', 1, 'btn'); 
+      pushBtn('<', currentPage - 1, 'btn'); 
+    } else { 
+      pushBtn('<<', 1, 'btn'); 
+      pushBtn('<', null, 'btn'); 
+    }
 
     if (totalPages <= maxButtons) {
       for (let i = 1; i <= totalPages; i++) pushBtn(i, i);
@@ -78,8 +92,13 @@ window.userModule = (function () {
     }
 
     // Next / Last
-    if (currentPage < totalPages) { pushBtn('>', currentPage + 1, 'btn'); pushBtn('>>', totalPages, 'btn'); }
-    else { pushBtn('>', null, 'btn'); pushBtn('>>', totalPages, 'btn'); }
+    if (currentPage < totalPages) { 
+      pushBtn('>', currentPage + 1, 'btn'); 
+      pushBtn('>>', totalPages, 'btn'); 
+    } else { 
+      pushBtn('>', null, 'btn'); 
+      pushBtn('>>', totalPages, 'btn'); 
+    }
 
     document.getElementById('pagination').innerHTML = parts.join('');
   }
@@ -159,7 +178,9 @@ window.userModule = (function () {
     const password = document.getElementById('userPassword').value;
     const role = document.getElementById('userRole').value;
     const body = { name, email, role };
-    if (password) body.password = password;
+    if (password) {
+      body.password = password;
+    }
     const url = editingUserId ? `/api/users/${editingUserId}` : '/api/users';
     const method = editingUserId ? 'PUT' : 'POST';
     try {
@@ -172,7 +193,9 @@ window.userModule = (function () {
 
   // notify on delete
   async function deleteUser(id) {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    if (!confirm('Are you sure you want to delete this user?')) {
+      return;
+    }
     const token = getToken();
     try {
       const res = await fetch(`/api/users/${id}`, { method: 'DELETE', headers: { authorization: token } });
@@ -201,12 +224,19 @@ window.userModule = (function () {
     document.getElementById('searchInput').addEventListener('input', filterTable);
 
     const token = getToken();
-    if (!token) { location = '/'; return; }
+    if (!token) { 
+      location = '/';
+      return; }
     try {
       const res = await fetch('/api/verify', { headers: { authorization: token } });
       const data = await res.json();
-      if (!data.success || !data.user || data.user.role !== 'admin') { location = '/'; }
-      else { localStorage.setItem('user', JSON.stringify(data.user)); await loadUsers(); if (window.adminApp && typeof window.adminApp.showSidebarUser === 'function') adminApp.showSidebarUser(); }
+      if (!data.success || !data.user || data.user.role !== 'admin') { 
+        location = '/'; 
+      } else { 
+        localStorage.setItem('user', JSON.stringify(data.user)); 
+        await loadUsers(); 
+        if (window.adminApp && typeof window.adminApp.showSidebarUser === 'function') adminApp.showSidebarUser(); 
+      }
     } catch (err) { console.error('Verify request failed', err); location = '/'; }
   }
 
