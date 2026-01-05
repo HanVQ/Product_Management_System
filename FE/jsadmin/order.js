@@ -13,10 +13,16 @@ window.orderModule = (function () {
     async function loadOrders() {
         const token = getToken();
         const out = document.getElementById('results');
-        if (!token) { out.innerText = 'No token available. Please login as admin.'; return; }
+        if (!token) { 
+            out.innerText = 'No token available. Please login as admin.'; 
+            return; 
+        }
         const res = await fetch('/api/orders', { headers: { authorization: token } });
         const data = await res.json();
-        if (!data.success) { out.innerText = 'Error loading orders: ' + (data.message || JSON.stringify(data)); return; }
+        if (!data.success) { 
+            out.innerText = 'Error loading orders: ' + (data.message || JSON.stringify(data)); 
+            return; 
+        }
         allOrders = data.orders || [];
         filteredOrders = [...allOrders];
         currentPage = 1;
@@ -71,13 +77,21 @@ window.orderModule = (function () {
         let parts = [];
 
         function pushBtn(label, page, cls) {
-            if (page === null) { parts.push(`<span class="ellipsis">${label}</span>`); return; }
+            if (page === null) { 
+                parts.push(`<span class="ellipsis">${label}</span>`); 
+                return; 
+            }
             const c = cls ? cls : (page === currentPage ? 'btn active' : 'btn');
             parts.push(`<button class="${c}" onclick="goToPage(${page})">${label}</button>`);
         }
 
-        if (currentPage > 1) { pushBtn('<<', 1, 'btn'); pushBtn('<', currentPage - 1, 'btn'); }
-        else { pushBtn('<<', 1, 'btn'); pushBtn('<', null, 'btn'); }
+        if (currentPage > 1) { 
+            pushBtn('<<', 1, 'btn'); 
+            pushBtn('<', currentPage - 1, 'btn'); 
+        } else { 
+            pushBtn('<<', 1, 'btn'); 
+            pushBtn('<', null, 'btn'); 
+        }
 
         if (totalPages <= maxButtons) {
             for (let i = 1; i <= totalPages; i++) pushBtn(i, i);
@@ -92,8 +106,13 @@ window.orderModule = (function () {
             pushBtn(totalPages, totalPages);
         }
 
-        if (currentPage < totalPages) { pushBtn('>', currentPage + 1, 'btn'); pushBtn('>>', totalPages, 'btn'); }
-        else { pushBtn('>', null, 'btn'); pushBtn('>>', totalPages, 'btn'); }
+        if (currentPage < totalPages) { 
+            pushBtn('>', currentPage + 1, 'btn'); 
+            pushBtn('>>', totalPages, 'btn'); 
+        } else { 
+            pushBtn('>', null, 'btn'); 
+            pushBtn('>>', totalPages, 'btn'); 
+        }
 
         document.getElementById('pagination').innerHTML = parts.join('');
     }
@@ -273,7 +292,10 @@ window.orderModule = (function () {
 
     async function updateStatus(id, currentStatus) {
         const newStatus = prompt('Enter new status (pending, confirmed, shipped, delivered, cancelled):', currentStatus);
-        if (!newStatus || newStatus === currentStatus) return;
+        if (!newStatus || newStatus === currentStatus) {
+            return;
+        }
+            
         const token = getToken();
         const res = await fetch(`/api/orders/${id}`, {
             method: 'PUT',
