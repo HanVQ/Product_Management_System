@@ -12,10 +12,16 @@ window.brandModule = (function () {
     async function loadBrands() {
         const token = getToken();
         const out = document.getElementById('results');
-        if (!token) { out.innerText = 'No token available. Please login as admin.'; return; }
+        if (!token) { 
+            out.innerText = 'No token available. Please login as admin.'; 
+            return; 
+        }
         const res = await fetch('/api/brands', { headers: { authorization: token } });
         const data = await res.json();
-        if (!data.data) { out.innerText = 'Error loading brands: ' + (data.message || JSON.stringify(data)); return; }
+        if (!data.data) { 
+            out.innerText = 'Error loading brands: ' + (data.message || JSON.stringify(data)); 
+            return; 
+        }
         allBrands = data.data || [];
         filteredBrands = [...allBrands];
         currentPage = 1;
@@ -73,7 +79,10 @@ window.brandModule = (function () {
         document.getElementById('pagination').innerHTML = parts.join('');
     }
 
-    function goToPage(page) { currentPage = page; renderTable(); }
+    function goToPage(page) { 
+        currentPage = page; 
+        renderTable(); 
+    }
 
     function changePage(page) {
         currentPage = page;
@@ -82,9 +91,7 @@ window.brandModule = (function () {
 
     function filterBrands() {
         const query = document.getElementById('searchInput').value.toLowerCase();
-        filteredBrands = allBrands.filter(b =>
-            (b.name || '').toLowerCase().includes(query)
-        );
+        filteredBrands = allBrands.filter(b => (b.name || '').toLowerCase().includes(query));
         currentPage = 1;
         renderTable();
     }
@@ -125,7 +132,9 @@ window.brandModule = (function () {
 
     function closeModal() {
         const brandModal = document.getElementById('brandModal');
-        if (brandModal) brandModal.classList.remove('show');
+        if (brandModal) {
+            brandModal.classList.remove('show');
+        }
     }
 
     async function saveBrand(event) {
@@ -162,7 +171,9 @@ window.brandModule = (function () {
     }
 
     async function deleteBrand(id) {
-        if (!confirm('Are you sure you want to delete this brand?')) return;
+        if (!confirm('Are you sure you want to delete this brand?')) {
+            return;
+        }
         const token = getToken();
         const res = await fetch(`/api/brands/${id}`, {
             method: 'DELETE',
@@ -176,7 +187,9 @@ window.brandModule = (function () {
         }
     }
 
-    function escapeHtml(str) { return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;').replace(/"/g, '&quot;'); }
+    function escapeHtml(str) { 
+        return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;').replace(/"/g, '&quot;'); 
+    }
 
     function init() {
         loadBrands();
