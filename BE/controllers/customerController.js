@@ -2,7 +2,7 @@ const customerService = require('../services/customerService');
 
 class CustomerController {
     // List customers
-    async list(req, res) {
+    async listCustomer(req, res) {
         try {
             const customers = await customerService.listCustomers();
             res.json({ success: true, customers });
