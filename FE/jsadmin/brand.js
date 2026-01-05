@@ -12,6 +12,10 @@ window.brandModule = (function () {
     async function loadBrands() {
         const token = getToken();
         const out = document.getElementById('results');
+        if (!token) { 
+            out.innerText = 'No token available. Please login as admin.'; 
+            return; 
+        }
         if (!token) {
             out.innerText = 'No token available. Please login as admin.';
             return;
@@ -187,7 +191,9 @@ window.brandModule = (function () {
     }
 
     async function deleteBrand(id) {
-        if (!confirm('Are you sure you want to delete this brand?')) return;
+        if (!confirm('Are you sure you want to delete this brand?')) {
+            return;
+        }
         const token = getToken();
         const res = await fetch(`/api/brands/${id}`, {
             method: 'DELETE',

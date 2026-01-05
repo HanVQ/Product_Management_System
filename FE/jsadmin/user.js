@@ -260,7 +260,10 @@ window.userModule = (function () {
     document.getElementById('searchInput').addEventListener('input', filterTable);
 
     const token = getToken();
-    if (!token) { location = '/'; return; }
+    if (!token) { 
+      location = '/'; 
+      return; 
+    }
     try {
       const res = await fetch('/api/verify', { headers: { authorization: token } });
       const data = await res.json();

@@ -356,7 +356,9 @@ window.productModule = (function () {
         productPrice.value = '';
         productStock.value = '';
         productCategory.value = '';
-        if (productBrand) productBrand.value = '';
+        if (productBrand) {
+            productBrand.value = '';
+        }   
         modalError.style.display = 'none';
         // set initial stock status badge and listen to changes
         const stockStatusSpan = document.getElementById('productStockStatus');

@@ -18,7 +18,10 @@ window.customerModule = (function () {
         }
         const res = await fetch('/api/customers', { headers: { authorization: token } });
         const data = await res.json();
-        if (!data.success) { out.innerText = 'Error loading customers: ' + (data.message || JSON.stringify(data)); return; }
+        if (!data.success) { 
+            out.innerText = 'Error loading customers: ' + (data.message || JSON.stringify(data)); 
+            return; 
+        }
         allCustomers = data.customers || [];
         filteredCustomers = [...allCustomers];
         currentPage = 1;
@@ -215,7 +218,9 @@ window.customerModule = (function () {
     }
 
     async function deleteCustomer(id) {
-        if (!confirm('Are you sure you want to delete this customer?')) return;
+        if (!confirm('Are you sure you want to delete this customer?')) {
+            return;
+        }
         const token = getToken();
         const res = await fetch(`/api/customers/${id}`, {
             method: 'DELETE',
