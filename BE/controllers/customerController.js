@@ -12,7 +12,7 @@ class CustomerController {
     }
 
     // Get single customer
-    async get(req, res) {
+    async getCustomer(req, res) {
         try {
             const { id } = req.params;
             const customer = await customerService.getCustomerById(id);
@@ -23,7 +23,7 @@ class CustomerController {
     }
 
     // Create customer
-    async create(req, res) {
+    async createCustomer(req, res) {
         try {
             const customer = await customerService.createCustomer(req.body);
             res.status(201).json({ success: true, customer });
@@ -33,7 +33,7 @@ class CustomerController {
     }
 
     // Bulk create customers
-    async createMany(req, res) {
+    async createManyCustomer(req, res) {
         try {
             const customer = await customerService.createCustomer(req.body);
             res.status(201).json({ success: true, customer });
@@ -43,7 +43,7 @@ class CustomerController {
     }
 
     // Update customer
-    async update(req, res) {
+    async updateCustomer(req, res) {
         try {
             const { id } = req.params;
             const customer = await customerService.updateCustomer(id, req.body);
@@ -54,7 +54,7 @@ class CustomerController {
     }
 
     // Delete customer
-    async remove(req, res) {
+    async removeCustomer(req, res) {
         try {
             const { id } = req.params;
             await customerService.deleteCustomer(id);
