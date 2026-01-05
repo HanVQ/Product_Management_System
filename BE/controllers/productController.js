@@ -2,7 +2,7 @@ const productService = require('../services/productService');
 
 class ProductController {
     // List products with filtering, sorting, and pagination
-    async list(req, res) {
+    async listProduct(req, res) {
         try {
             const filters = {
                 search: req.query.search || '',
@@ -22,7 +22,7 @@ class ProductController {
     }
 
     // Get single product
-    async get(req, res) {
+    async getProduct(req, res) {
         try {
             const { id } = req.params;
             const product = await productService.getProductById(id);
@@ -33,7 +33,7 @@ class ProductController {
     }
 
     // Create product
-    async create(req, res) {
+    async createProduct(req, res) {
         try {
             const product = await productService.createProduct(req.body);
             res.status(201).json({ success: true, product });
@@ -43,7 +43,7 @@ class ProductController {
     }
 
     // Bulk create products
-    async createMany(req, res) {
+    async createManyProduct(req, res) {
         try {
             const product = await productService.createProducts(req.body);
             res.status(201).json({ success: true, product});
@@ -53,7 +53,7 @@ class ProductController {
     }
 
     // Update product
-    async update(req, res) {
+    async updateProduct(req, res) {
         try {
             const { id } = req.params;
             const product = await productService.updateProduct(id, req.body);
@@ -64,7 +64,7 @@ class ProductController {
     }
 
     // Delete product
-    async remove(req, res) {
+    async removeProduct(req, res) {
         try {
             const { id } = req.params;
             await productService.deleteProduct(id);
