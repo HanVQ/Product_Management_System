@@ -2,7 +2,7 @@ const productTypeService = require('../services/productTypeService');
 
 class ProductTypeController {
     // List product types
-    async list(req, res) {
+    async listProductType(req, res) {
         try {
             const productTypes = await productTypeService.listProductTypes();
             res.json({ success: true, data: productTypes });
@@ -12,7 +12,7 @@ class ProductTypeController {
     }
 
     // Get product type by ID
-    async get(req, res) {
+    async getProductType(req, res) {
         try {
             const { id } = req.params;
             const productType = await productTypeService.getProductTypeById(id);
@@ -23,7 +23,7 @@ class ProductTypeController {
     }
 
     // Create product type
-    async create(req, res) {
+    async createProductType(req, res) {
         try {
             const productType = await productTypeService.createProductType(req.body);
             res.json({ success: true, data: productType });
@@ -33,7 +33,7 @@ class ProductTypeController {
     }
 
     // Bulk create products
-    async createMany(req, res) {
+    async createManyProductType(req, res) {
         try {
             const productTypes = await productTypeService.createProductTypes(req.body);
             res.status(201).json({ success: true, data: productTypes });
@@ -43,7 +43,7 @@ class ProductTypeController {
     }
 
     // Update product type
-    async update(req, res) {
+    async updateProductType(req, res) {
         try {
             const { id } = req.params;
             const productType = await productTypeService.updateProductType(id, req.body);
@@ -54,7 +54,7 @@ class ProductTypeController {
     }
 
     // Delete product type
-    async remove(req, res) {
+    async removeProductType(req, res) {
         try {
             const { id } = req.params;
             const productType = await productTypeService.deleteProductType(id);

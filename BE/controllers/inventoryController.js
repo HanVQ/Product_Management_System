@@ -2,7 +2,7 @@ const inventoryService = require('../services/inventoryService');
 
 class InventoryController {
     // List transactions
-    async list(req, res) {
+    async listInventory(req, res) {
         try {
             const transactions = await inventoryService.listTransactions();
             res.json({ success: true, transactions });
@@ -12,7 +12,7 @@ class InventoryController {
     }
 
     // Get single transaction
-    async get(req, res) {
+    async getInventory(req, res) {
         try {
             const { id } = req.params;
             const transaction = await inventoryService.getTransactionById(id);
@@ -23,7 +23,7 @@ class InventoryController {
     }
 
     // Create transaction
-    async create(req, res) {
+    async createInventory(req, res) {
         try {
             const transaction = await inventoryService.createTransaction(req.body);
             res.status(201).json({ success: true, transaction });
@@ -33,7 +33,7 @@ class InventoryController {
     }
 
     // Update transaction
-    async update(req, res) {
+    async updateInventory(req, res) {
         try {
             const { id } = req.params;
             const transaction = await inventoryService.updateTransaction(id, req.body);
@@ -44,7 +44,7 @@ class InventoryController {
     }
 
     // Delete transaction
-    async remove(req, res) {
+    async removeInventory(req, res) {
         try {
             const { id } = req.params;
             await inventoryService.deleteTransaction(id);

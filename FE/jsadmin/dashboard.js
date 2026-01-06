@@ -6,7 +6,9 @@ window.dashboardModule = (function () {
 
     async function loadStats() {
         const token = getToken();
-        if (!token) return;
+        if (!token) {
+            return;
+        }
 
         try {
             // Gọi API song song để lấy dữ liệu
