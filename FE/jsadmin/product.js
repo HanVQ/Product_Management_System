@@ -147,11 +147,13 @@ window.productModule = (function () {
 
         allProducts = data.products || [];
         // attach product type and brand name for rendering
+        // attach product type and brand name for rendering
         allProducts.forEach(p => {
             const pt = allProductTypes.find(t => String(t._id) === String(p.productType));
             p._productTypeName = pt ? pt.name : '';
             const b = allBrands.find(x => String(x._id) === String(p.brand || p.brandId || ''));
             p._brandName = b ? b.name : '';
+            p._stockStatus = computeStockStatus(p.stock);
             p._stockStatus = computeStockStatus(p.stock);
         });
 
@@ -178,6 +180,15 @@ window.productModule = (function () {
             const rowNum = (pagination ? (pagination.page - 1) * pagination.limit : currentPage - 1 * perPage) + idx + 1;
             html += `<tr>
                 <td>${rowNum}</td>
+        let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Description</th><th>Price</th><th>Stock</th><th>Stock Status</th><th>Brand</th><th>Product Type</th><th style="width:140px">Action</th></tr></thead><tbody>';
+        pageData.forEach((p, idx) => {
+            const productTypeName = p._productTypeName || (allProductTypes.find(pt => String(pt._id) === String(p.productType)) || {}).name || '';
+            const brandName = p._brandName || (allBrands.find(br => String(br._id) === String(p.brand || p.brandId || '')) || {}).name || '';
+            const stockStatus = p._stockStatus || computeStockStatus(p.stock);
+            const statusClass = stockStatus.replace(/\s+/g, '-');
+            const rowNum = (pagination ? (pagination.page - 1) * pagination.limit : currentPage - 1 * perPage) + idx + 1;
+            html += `<tr>
+                <td>${rowNum}</td>
                 <td>${p.name || ''}</td>
                 <td>${(p.description || '').substring(0, 50)}${(p.description || '').length > 50 ? '...' : ''}</td>
                 <td>${p.price.toLocaleString('vi-VN')} ₫</td>
@@ -187,9 +198,11 @@ window.productModule = (function () {
                 <td>${productTypeName}</td>
                 <td class="action"><div class="action-btns">
                     <button class="btn btn-warning" onclick="editProductModal('${p._id}', '${escapeHtml(p.name || '')}', '${escapeHtml(p.description || '')}', '${p.price || 0}', '${p.stock || 0}', '${p.productType || ''}', '${p.brand || p.brandId || ''}')">Edit</button>
+                    <button class="btn btn-warning" onclick="editProductModal('${p._id}', '${escapeHtml(p.name || '')}', '${escapeHtml(p.description || '')}', '${p.price || 0}', '${p.stock || 0}', '${p.productType || ''}', '${p.brand || p.brandId || ''}')">Edit</button>
                     <button class="btn btn-danger" onclick="deleteProduct('${p._id}')">Delete</button>
                 </div></td>
             </tr>`;
+        });
         });
         html += '</tbody></table></div>';
         document.getElementById('results').innerHTML = html;
@@ -205,7 +218,13 @@ window.productModule = (function () {
         // This function is kept for reference but not used
         return;
     }
+        // Sorting is now handled by the backend, no client-side sorting needed
+        // This function is kept for reference but not used
+        return;
+    }
 
+    function renderPagination(pagination) {
+        const totalPages = pagination.pages || 1;
     function renderPagination(pagination) {
         const totalPages = pagination.pages || 1;
         const maxButtons = 7;
@@ -272,7 +291,9 @@ window.productModule = (function () {
 
     function filterProducts() {
         // Reset page to 1 when filtering changes
+        // Reset page to 1 when filtering changes
         currentPage = 1;
+        loadProducts();
         loadProducts();
     }
 
@@ -291,6 +312,8 @@ window.productModule = (function () {
         currentSortOrder = parts[1] || 'asc';
         currentPage = 1; // Reset to page 1
         loadProducts(); // Reload with new sort
+        currentPage = 1; // Reset to page 1
+        loadProducts(); // Reload with new sort
         // hide panel after applying
         const panel = document.getElementById('sortPanel'); if (panel) panel.style.display = 'none';
     }
@@ -299,6 +322,8 @@ window.productModule = (function () {
         currentSortField = '';
         currentSortOrder = 'asc';
         const opt = document.getElementById('sortOption'); if (opt) opt.value = 'name:asc';
+        currentPage = 1;
+        loadProducts();
         currentPage = 1;
         loadProducts();
     }
@@ -310,6 +335,8 @@ window.productModule = (function () {
     }
 
     function applyFilters() {
+        currentPage = 1;
+        loadProducts();
         currentPage = 1;
         loadProducts();
         document.getElementById('filterPanel').style.display = 'none';
@@ -329,6 +356,8 @@ window.productModule = (function () {
             f3.value = '';
         }
         document.getElementById('searchInput').value = '';
+        currentPage = 1;
+        loadProducts();
         currentPage = 1;
         loadProducts();
     }

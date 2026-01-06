@@ -42,6 +42,16 @@ class CustomerController {
         }
     }
 
+    // Bulk create customers
+    async createMany(req, res) {
+        try {
+            const customer = await customerService.createCustomer(req.body);
+            res.status(201).json({ success: true, customer });
+        } catch (err) {
+            res.status(400).json({ success: false, message: err.message });
+        }
+    }
+
     // Update customer
     async updateCustomer(req, res) {
         try {
