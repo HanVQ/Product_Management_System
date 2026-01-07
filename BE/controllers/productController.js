@@ -26,7 +26,12 @@ class ProductController {
         try {
             const { id } = req.params;
             const product = await productService.getProductById(id);
-            res.json({ success: true, product });
+            // Populate variants if any
+            const ProductVariant = require('../models/ProductVariant');
+            const variants = await ProductVariant.find({ product: product._id });
+            // Attach variants to product for virtual field calculation
+            product.variants = variants;
+            res.json({ success: true, product, variants });
         } catch (err) {
             res.status(404).json({ success: false, message: err.message });
         }
