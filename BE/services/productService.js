@@ -1,4 +1,5 @@
 const Product = require('../models/Product');
+const ProductVariant = require('../models/ProductVariant');
 
 class ProductService {
     async listProducts(filters = {}) {
@@ -35,17 +36,6 @@ class ProductService {
                 query.brand = brand;
             }
 
-            // Filter by stock status
-            if (stockStatus) {
-                if (stockStatus.toLowerCase() === 'out of stock') {
-                    query.stock = 0;
-                } else if (stockStatus.toLowerCase() === 'low stock') {
-                    query.stock = { $gt: 0, $lte: 5 };
-                } else if (stockStatus.toLowerCase() === 'in stock') {
-                    query.stock = { $gt: 5 };
-                }
-            }
-
             // Validate and build sort object
             const validSortFields = ['name', 'price', 'stock', 'createdAt'];
             const safeSortField = validSortFields.includes(sortField) ? sortField : 'createdAt';
@@ -63,11 +53,34 @@ class ProductService {
                 .skip(skip)
                 .limit(limitNum);
 
+            // For each product, load variants and calculate total stock
+            for (const product of products) {
+                const variants = await ProductVariant.find({ product: product._id });
+                product.variants = variants;
+                // Now totalStock virtual field will be calculated
+            }
+
+            // Apply stock status filter AFTER loading variants (since stock is now virtual)
+            let filtered = products;
+            if (stockStatus) {
+                filtered = products.filter(p => {
+                    const stock = p.totalStock || 0;
+                    if (stockStatus.toLowerCase() === 'out of stock') {
+                        return stock === 0;
+                    } else if (stockStatus.toLowerCase() === 'low stock') {
+                        return stock > 0 && stock <= 10;
+                    } else if (stockStatus.toLowerCase() === 'in stock') {
+                        return stock > 10;
+                    }
+                    return true;
+                });
+            }
+
             // Get total count for pagination metadata
             const total = await Product.countDocuments(query);
 
             return {
-                products,
+                products: filtered,
                 pagination: {
                     page: pageNum,
                     limit: limitNum,
@@ -86,6 +99,9 @@ class ProductService {
             if (!product) {
                 throw new Error('Product not found');
             }
+            // Load variants for this product
+            const variants = await ProductVariant.find({ product: product._id });
+            product.variants = variants;
             return product;
         } catch (error) {
             throw new Error(`Error getting product: ${error.message}`);
@@ -110,6 +126,22 @@ class ProductService {
             });
 
             await newProduct.save();
+
+            // If ProductVariant model exists and stock provided, create a default variant
+            try {
+                if (typeof ProductVariant !== 'undefined' && newProduct.stock > 0) {
+                    await ProductVariant.create({
+                        product: newProduct._id,
+                        price: newProduct.price,
+                        stock: newProduct.stock
+                    });
+                    // keep product.stock for backward compatibility
+                }
+            } catch (e) {
+                // non-fatal: variant creation failed
+                console.warn('Variant creation skipped:', e.message);
+            }
+
             return newProduct;
         } catch (error) {
             throw new Error(`Error creating product: ${error.message}`);
@@ -161,6 +193,9 @@ class ProductService {
             product.brand = brand !== undefined ? brand : product.brand;
 
             await product.save();
+
+            // If product stock changed and variants exist, you may want to sync.
+            // For now, do not auto-adjust variants to avoid unexpected changes.
             return product;
         } catch (error) {
             throw new Error(`Error updating product: ${error.message}`);
@@ -169,10 +204,16 @@ class ProductService {
 
     async deleteProduct(id) {
         try {
-            const product = await Product.findByIdAndDelete(id);
-            if (!product) {
-                throw new Error('Product not found');
+            const product = await Product.findById(id);
+            if (!product) throw new Error('Product not found');
+
+            // Prevent deletion if variants exist
+            const variants = await ProductVariant.find({ product: product._id });
+            if (variants.length > 0) {
+                throw new Error('Cannot delete product: variants exist. Remove variants first.');
             }
+
+            await Product.findByIdAndDelete(id);
             return product;
         } catch (error) {
             throw new Error(`Error deleting product: ${error.message}`);
