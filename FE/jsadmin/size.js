@@ -6,8 +6,9 @@ window.sizeModule = (function () {
     }
 
     async function loadSizes() {
+        const token = getToken();
         try {
-            const res = await fetch('/api/sizes');
+            const res = await fetch('/api/sizes', { headers: { authorization: token } });
             const data = await res.json();
             allSizes = data.sizes || [];
             renderSizes();

@@ -32,8 +32,8 @@ window.productModule = (function () {
         const token = getToken();
         try {
             const [sRes, cRes] = await Promise.all([
-                fetch('/api/sizes'),
-                fetch('/api/colors')
+                fetch('/api/sizes', { headers: { authorization: token } }),
+                fetch('/api/colors', { headers: { authorization: token } })
             ]);
             const sData = await sRes.json();
             const cData = await cRes.json();

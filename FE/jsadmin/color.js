@@ -6,8 +6,9 @@ window.colorModule = (function () {
     }
 
     async function loadColors() {
+        const token = getToken();
         try {
-            const res = await fetch('/api/colors');
+            const res = await fetch('/api/colors', { headers: { authorization: token } });
             const data = await res.json();
             allColors = data.colors || [];
             renderColors();
