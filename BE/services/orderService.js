@@ -41,18 +41,27 @@ class OrderService {
                 throw new Error('Items are required');
             }
 
-            // 1. Check or create customer record
-            let customer = await Customer.findOne({ userId: tokenUser._id });
-            if (!customer) {
-                customer = await Customer.create({
-                    userId: tokenUser._id,
-                    name: tokenUser.name,
-                    email: tokenUser.email,
-                    phone: tokenUser.phone || null,
-                    address: tokenUser.address || null,
-                    totalOrders: 0,
-                    totalSpent: 0
-                });
+            // 1. Determine customer: prefer provided customer id in orderData, otherwise use tokenUser
+            let customer = null;
+            if (orderData.customer) {
+                customer = await Customer.findById(orderData.customer);
+                if (!customer) {
+                    throw new Error('Provided customer not found');
+                }
+            } else {
+                // find or create customer record for tokenUser
+                customer = await Customer.findOne({ userId: tokenUser._id });
+                if (!customer) {
+                    customer = await Customer.create({
+                        userId: tokenUser._id,
+                        name: tokenUser.name,
+                        email: tokenUser.email,
+                        phone: tokenUser.phone || null,
+                        address: tokenUser.address || null,
+                        totalOrders: 0,
+                        totalSpent: 0
+                    });
+                }
             }
 
             // 2. Calculate order items and check stock
@@ -116,12 +125,13 @@ class OrderService {
                 }
             }
 
-            // 3. Create new order
+            // 3. Create new order (ensure unique orderNumber to avoid null-unique index collisions)
             const newOrder = new Order({
                 customer: customer._id,
                 items: orderItems,
                 totalAmount,
                 status: 'pending',
+                orderNumber: `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
                 createdAt: new Date()
             });
             await newOrder.save();

@@ -39,6 +39,12 @@
         <div id="modalError" class="error" style="display:none;"></div>
         <form onsubmit="saveOrder(event)">
             <div class="form-group">
+                <label>Customer:</label>
+                <select id="orderCustomer" required>
+                    <option value="">Select Customer</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label>Items:</label>
                 <div id="orderItems">
                     <div class="order-item">

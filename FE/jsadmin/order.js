@@ -232,6 +232,7 @@ window.orderModule = (function () {
 
         modalTitle.innerText = 'Create Order';
         populateProductSelects();
+        populateCustomerSelect();
         totalAmount.innerText = formatCurrency(0);
         hideError('modalError');
         orderModal.classList.add('show');
@@ -260,6 +261,21 @@ window.orderModule = (function () {
         if (!container) return;
 
         container.innerHTML = createOrderItemHTML();
+    }
+
+    function populateCustomerSelect() {
+        const sel = document.getElementById('orderCustomer');
+        if (!sel) return;
+        // preserve current selection
+        const cur = sel.value;
+        sel.innerHTML = '<option value="">Select Customer</option>';
+        customers.forEach(c => {
+            const o = document.createElement('option');
+            o.value = c._id;
+            o.textContent = `${c.name} ${c.email ? '(' + c.email + ')' : ''}`;
+            sel.appendChild(o);
+        });
+        if (cur) sel.value = cur;
     }
 
     function createOrderItemHTML() {
@@ -399,6 +415,12 @@ window.orderModule = (function () {
             return;
         }
 
+        const customer = (document.getElementById('orderCustomer') && document.getElementById('orderCustomer').value) || '';
+        if (!customer) {
+            showError('modalError', 'Select a customer');
+            return;
+        }
+
         try {
             const res = await fetch('/api/orders', {
                 method: 'POST',
@@ -406,7 +428,7 @@ window.orderModule = (function () {
                     'Content-Type': 'application/json',
                     authorization: token
                 },
-                body: JSON.stringify({ items })
+                body: JSON.stringify({ customer, items })
             });
 
             const data = await res.json();
