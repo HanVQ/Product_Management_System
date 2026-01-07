@@ -1,4 +1,3 @@
-// Toggle between login and signup forms
 function toggleForms() {
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
@@ -20,7 +19,7 @@ function showMessage(elementId, message, type) {
     const messageEl = document.getElementById(elementId);
     messageEl.textContent = message;
     messageEl.classList.add('show', type);
-    
+
     // Auto-hide after 5 seconds
     setTimeout(() => {
         messageEl.classList.remove('show');
@@ -114,10 +113,10 @@ function showDashboard(user, token) {
     // Ẩn form Login và Signup
     document.getElementById('login-form').classList.remove('active');
     document.getElementById('signup-form').classList.remove('active');
-    
+
     // Chỉ hiển thị Dashboard
     const dashboard = document.getElementById('dashboard');
-    dashboard.classList.add('active'); 
+    dashboard.classList.add('active');
 
     // Cập nhật thông tin trên dashboard
     document.getElementById('user-name').textContent = user.name || '';
@@ -131,7 +130,7 @@ function copyToken() {
     const tokenDisplay = document.getElementById('token-display');
     tokenDisplay.select();
     document.execCommand('copy');
-    
+
     showMessage('dashboard-message', 'Token copied to clipboard!', 'success');
 }
 

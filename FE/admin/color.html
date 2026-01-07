@@ -1,0 +1,32 @@
+<div class="container" id="color-page">
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3>Colors</h3>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="openColorModal()">Add Color</button>
+            </div>
+        </div>
+
+        <div id="colorResults"></div>
+    </div>
+</div>
+
+<!-- Add/Edit Color Modal -->
+<div class="modal" id="colorModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="colorModalTitle">Add Color</h2>
+        </div>
+        <div id="colorModalError" class="error" style="display:none;"></div>
+        <form onsubmit="saveColor(event)">
+            <div class="form-group">
+                <label>Name:</label>
+                <input type="text" id="colorName" required>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeColorModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
