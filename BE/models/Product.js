@@ -20,6 +20,7 @@ const productSchema = new mongoose.Schema({
         enum: ['VND'],
         default: 'VND'
     },
+    // stock is now derived from variants - keeping field for backward compatibility but deprecated
     stock: {
         type: Number,
         default: 0,
@@ -47,14 +48,17 @@ const productSchema = new mongoose.Schema({
     toObject: { virtuals: true }
 });
 
-// Virtual field: stockStatus
-// - 'out of stock' when stock === 0
-// - 'low stock' when 0 < stock <= LOW_STOCK_THRESHOLD
-// - 'in stock' when stock > LOW_STOCK_THRESHOLD
+// Virtual field: totalStock - sum of all variant stocks
+// This is populated by the service layer when variants are loaded
+productSchema.virtual('totalStock').get(function () {
+    if (!this.variants || this.variants.length === 0) return 0;
+    return this.variants.reduce((sum, v) => sum + (v.stock || 0), 0);
+});
 
-const LOW_STOCK_THRESHOLD = 10; // replace
+// Virtual field: stockStatus (based on totalStock if variants exist, otherwise product.stock)
+const LOW_STOCK_THRESHOLD = 10;
 productSchema.virtual('stockStatus').get(function () {
-    const s = typeof this.stock === 'number' ? this.stock : 0;
+    const s = this.totalStock || (typeof this.stock === 'number' ? this.stock : 0);
     if (s === 0) return 'out of stock';
     if (s <= LOW_STOCK_THRESHOLD) return 'low stock';
     return 'in stock';

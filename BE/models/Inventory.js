@@ -4,7 +4,13 @@ const inventorySchema = new mongoose.Schema({
     product: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Product',
-        required: true,
+        required: false,
+    },
+    // Optional variant reference (when product has size/color variants)
+    variant: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ProductVariant',
+        required: false,
     },
     type: {
         type: String,
