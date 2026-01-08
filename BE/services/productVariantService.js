@@ -36,8 +36,8 @@ class ProductVariantService {
         }
 
         // Verify product exists
-        const prod = await Product.findById(product);
-        if (!prod) {
+        const productExit = await Product.findById(product);
+        if (!productExit) {
             throw new Error('Product not found');
         }
 

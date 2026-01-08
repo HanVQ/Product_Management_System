@@ -19,16 +19,16 @@ class ColorService {
             }
 
             // Normalize: trim and capitalize first letter for consistency
-            let normalized = name.trim();
-            normalized = normalized.toUpperCase();
+            let normalizedName = name.trim();
+            normalizedName = normalizedName.toUpperCase();
             
             // Check for duplicates (case-insensitive)
-            const checkDuplicate = await Color.findOne({ name: { $regex: `^${normalized}$`, $options: 'i' } });
+            const checkDuplicate = await Color.findOne({ name: { $regex: `^${normalizedName}$`, $options: 'i' } });
             if (checkDuplicate) {
                 throw new Error(`Color "${checkDuplicate.name}" already exists`);
             }
 
-            const color = new Color({ name: normalized, hex: hex.toUpperCase() });
+            const color = new Color({ name: normalizedName, hex: hex.toUpperCase() });
             await color.save();
             return color;
         } catch (error) {
@@ -45,13 +45,13 @@ class ColorService {
                 throw new Error('Hex color required');
             }
             // Normalize: trim and capitalize first letter for consistency
-            let normalized = name.trim();
-            normalized = normalized.charAt(0).toUpperCase() + normalized.slice(1).toLowerCase();
+            let normalizedName = name.trim();
+            normalizedName = normalizedName.toUpperCase();
             const color = await Color.findById(id);
             if (!color) {
                 throw new Error('Color not found');
             }
-            color.name = normalized;
+            color.name = normalizedName;
             color.hex = hex.toUpperCase();
             await color.save();
             return color;

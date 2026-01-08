@@ -15,12 +15,12 @@ class ProductService {
                 limit = 10
             } = filters;
 
-            // Build MongoDB query
-            let query = { isActive: true };
+            // Build MongoDB checkStatus
+            let checkStatus = { isActive: true };
 
             // Search by name or description
             if (search) {
-                query.$or = [
+                checkStatus.$or = [
                     { name: { $regex: search, $options: 'i' } },
                     { description: { $regex: search, $options: 'i' } }
                 ];
@@ -28,17 +28,17 @@ class ProductService {
 
             // Filter by productType
             if (productType) {
-                query.productType = productType;
+                checkStatus.productType = productType;
             }
 
             // Filter by brand
             if (brand) {
-                query.brand = brand;
+                checkStatus.brand = brand;
             }
 
             // Validate and build sort object
-            const validSortFields = ['name', 'price', 'stock', 'createdAt'];
-            const safeSortField = validSortFields.includes(sortField) ? sortField : 'createdAt';
+            const validSortOptions = ['name', 'price', 'stock', 'createdAt'];
+            const safeSortField = validSortOptions.includes(sortField) ? sortField : 'createdAt';
             const safeSortOrder = [-1, 1].includes(Number(sortOrder)) ? Number(sortOrder) : -1;
             const sortObj = { [safeSortField]: safeSortOrder };
 
@@ -47,8 +47,8 @@ class ProductService {
             const limitNum = Math.max(1, Math.min(100, parseInt(limit) || 10)); // max 100 per page
             const skip = (pageNum - 1) * limitNum;
 
-            // Execute query
-            const products = await Product.find(query)
+            // Execute checkStatus
+            const products = await Product.find(checkStatus)
                 .sort(sortObj)
                 .skip(skip)
                 .limit(limitNum);
@@ -61,9 +61,9 @@ class ProductService {
             }
 
             // Apply stock status filter AFTER loading variants (since stock is now virtual)
-            let filtered = products;
+            let filteredStock = products;
             if (stockStatus) {
-                filtered = products.filter(p => {
+                filteredStock = products.filter(p => {
                     const stock = p.totalStock || 0;
                     if (stockStatus.toLowerCase() === 'out of stock') {
                         return stock === 0;
@@ -77,10 +77,10 @@ class ProductService {
             }
 
             // Get total count for pagination metadata
-            const total = await Product.countDocuments(query);
+            const total = await Product.countDocuments(checkStatus);
 
             return {
-                products: filtered,
+                products: filteredStock,
                 pagination: {
                     page: pageNum,
                     limit: limitNum,
