@@ -26,8 +26,10 @@ window.productModule = (function () {
     }
 
     // Load sizes and colors for variant management
+    // Load sizes and colors for variant management
     let allSizes = [];
     let allColors = [];
+    let editingVariantId = null;
     async function loadSizesAndColors() {
         const token = getToken();
         try {
@@ -207,11 +209,13 @@ window.productModule = (function () {
         // Data is already paginated from backend, no need to slice
         const pageData = filteredProducts;
 
-        let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Description</th><th>Price</th><th>Stock</th><th>Brand</th><th>Product Type</th><th style="width:250px">Action</th></tr></thead><tbody>';
+        let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Description</th><th>Price</th><th>Stock</th><th>Brand</th><th>Product Type</th><th>Status</th><th style="width:300px">Action</th></tr></thead><tbody>';
         pageData.forEach((p, idx) => {
             const productTypeName = p._productTypeName || (allProductTypes.find(pt => String(pt._id) === String(p.productType)) || {}).name || '';
             const brandName = p._brandName || (allBrands.find(br => String(br._id) === String(p.brand || p.brandId || '')) || {}).name || '';
             const rowNum = (pagination ? (pagination.page - 1) * pagination.limit : currentPage - 1 * perPage) + idx + 1;
+            const statusClass = p.status === 'Active' ? 'status-active' : 'status-inactive';
+            const statusText = p.status || 'Active';
             html += `<tr>
                 <td>${rowNum}</td>
                 <td>${p.name || ''}</td>
@@ -220,6 +224,7 @@ window.productModule = (function () {
                 <td>${p._displayStock || 0}</td>
                 <td>${brandName}</td>
                 <td>${productTypeName}</td>
+                <td><span class="status-badge ${statusClass}" onclick="toggleProductStatus('${p._id}')" style="cursor:pointer;">${statusText}</span></td>
                 <td class="action"><div class="action-btns">
                     <button class="btn btn-warning" onclick="editProductModal('${p._id}', '${escapeHtml(p.name || '')}', '${escapeHtml(p.description || '')}', '${p.price || 0}', '${p.productType || ''}', '${p.brand || p.brandId || ''}')">Edit</button>
                     <button class="btn btn-secondary" onclick="openVariantsModal('${p._id}', '${escapeHtml(p.name || '')}')">Variants</button>
@@ -253,6 +258,9 @@ window.productModule = (function () {
     function closeVariantsModal() {
         document.getElementById('variantsModal').classList.remove('show');
         currentVariantsProductId = null;
+        editingVariantId = null;
+        document.getElementById('variantForm').reset();
+        document.querySelector('#variantForm button[type="submit"]').innerText = 'Add Variant';
     }
 
     async function loadVariantsForProduct(productId) {
@@ -271,17 +279,38 @@ window.productModule = (function () {
         const cont = document.getElementById('variantsList');
         if (!cont) return;
         if (!list || list.length === 0) {
-            cont.innerHTML = '<div>No variants found for this product.</div>';
+            cont.innerHTML = '<div style="text-align:center;padding:20px;color:#666">No variants found for this product.</div>';
             return;
         }
-        let html = '<table style="width:100%"><thead><tr><th>SKU</th><th>Size</th><th>Color</th><th>Price</th><th>Stock</th><th>Action</th></tr></thead><tbody>';
+        let html = '<table style="width:100%;border-collapse:collapse;font-size:15px"><thead><tr style="background:#f0f0f0;font-weight:600"><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">SKU</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Size</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Color</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Price</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Stock</th><th style="padding:12px;text-align:center;border-bottom:2px solid #ddd">Action</th></tr></thead><tbody>';
         list.forEach(v => {
-            const sizeName = (v.size && v.size.name) || (allSizes.find(s => s._id === (v.size || '')) || {}).name || '';
-            const colorName = (v.color && v.color.name) || (allColors.find(c => c._id === (v.color || '')) || {}).name || '';
-            html += `<tr><td>${v.sku || ''}</td><td>${sizeName}</td><td>${colorName}</td><td>${(v.price || 0).toLocaleString('vi-VN')} ₫</td><td>${v.stock || 0}</td><td><button class="btn btn-danger" onclick="deleteVariant('${v._id}')">Delete</button></td></tr>`;
+            const sizeName = (v.size && v.size.name) || (allSizes.find(s => s._id === (v.size || '')) || {}).name || '—';
+            const colorName = (v.color && v.color.name) || (allColors.find(c => c._id === (v.color || '')) || {}).name || '—';
+            html += `<tr style="border-bottom:1px solid #eee"><td style="padding:12px">${v.sku || '—'}</td><td style="padding:12px">${sizeName}</td><td style="padding:12px">${colorName}</td><td style="padding:12px">${(v.price || 0).toLocaleString('vi-VN')} ₫</td><td style="padding:12px">${v.stock || 0}</td><td style="padding:12px;text-align:center"><button class="btn btn-warning" onclick="editVariant('${v._id}')" style="padding:6px 12px;margin-right:6px;font-size:13px">Edit</button> <button class="btn btn-danger" onclick="deleteVariant('${v._id}')" style="padding:6px 12px;font-size:13px">Delete</button></td></tr>`;
         });
         html += '</tbody></table>';
         cont.innerHTML = html;
+    }
+
+    async function editVariant(id) {
+        const token = getToken();
+        try {
+            const res = await fetch(`/api/productvariants/${id}`, { headers: { authorization: token } });
+            const data = await res.json();
+            if (data.variant) {
+                const v = data.variant;
+                editingVariantId = id;
+                document.getElementById('variantSize').value = v.size ? (v.size._id || v.size) : '';
+                document.getElementById('variantColor').value = v.color ? (v.color._id || v.color) : '';
+                document.getElementById('variantPrice').value = v.price || '';
+                document.getElementById('variantStock').value = v.stock || '';
+                document.querySelector('#variantForm button[type="submit"]').innerText = 'Update Variant';
+                document.getElementById('variantsError').style.display = 'none';
+            }
+        } catch (err) {
+            document.getElementById('variantsError').innerText = 'Error loading variant: ' + err.message;
+            document.getElementById('variantsError').style.display = 'block';
+        }
     }
 
     async function saveVariant(e) {
@@ -290,26 +319,20 @@ window.productModule = (function () {
         const token = getToken();
         const size = document.getElementById('variantSize').value || null;
         const color = document.getElementById('variantColor').value || null;
-        const price = parseFloat(document.getElementById('variantPrice').value);
-        const stock = parseInt(document.getElementById('variantStock').value);
-
-        if (isNaN(price) || price < 0) {
-            document.getElementById('variantsError').innerText = 'Valid price required';
-            document.getElementById('variantsError').style.display = 'block';
-            return;
-        }
-
-        if (isNaN(stock) || stock < 0) {
-            document.getElementById('variantsError').innerText = 'Valid stock required';
-            document.getElementById('variantsError').style.display = 'block';
-            return;
-        }
+        const price = document.getElementById('variantPrice').value ? parseFloat(document.getElementById('variantPrice').value) : undefined;
+        const stock = document.getElementById('variantStock').value ? parseInt(document.getElementById('variantStock').value) : undefined;
 
         try {
-            const res = await fetch('/api/productvariants', {
-                method: 'POST',
+            const method = editingVariantId ? 'PUT' : 'POST';
+            const url = editingVariantId ? `/api/productvariants/${editingVariantId}` : '/api/productvariants';
+            const body = editingVariantId
+                ? { size: size || undefined, color: color || undefined, price, stock }
+                : { product: currentVariantsProductId, size: size || undefined, color: color || undefined, price, stock };
+
+            const res = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json', authorization: token },
-                body: JSON.stringify({ product: currentVariantsProductId, size: size || undefined, color: color || undefined, price, stock })
+                body: JSON.stringify(body)
             });
             const data = await res.json();
             if (data.success) {
@@ -317,11 +340,14 @@ window.productModule = (function () {
                 document.getElementById('variantStock').value = '';
                 document.getElementById('variantSize').value = '';
                 document.getElementById('variantColor').value = '';
+                editingVariantId = null;
+                document.querySelector('#variantForm button[type="submit"]').innerText = 'Add Variant';
+                document.querySelector('#variantForm button[type="submit"]').innerText = 'Edit Variant';
                 await loadVariantsForProduct(currentVariantsProductId);
                 // Reload products to update stock display
                 await loadProducts();
             } else {
-                document.getElementById('variantsError').innerText = data.message || 'Error creating variant';
+                document.getElementById('variantsError').innerText = data.message || 'Error saving variant';
                 document.getElementById('variantsError').style.display = 'block';
             }
         } catch (err) {
@@ -337,7 +363,10 @@ window.productModule = (function () {
             const res = await fetch(`/api/productvariants/${id}`, { method: 'DELETE', headers: { authorization: token } });
             const data = await res.json();
             if (data.success) {
-                if (currentVariantsProductId) await loadVariantsForProduct(currentVariantsProductId);
+                if (currentVariantsProductId) {
+                    await loadVariantsForProduct(currentVariantsProductId);
+                    await loadProducts();
+                }
             } else {
                 adminApp.showToast('Error deleting variant: ' + data.message, 'error');
             }
@@ -573,10 +602,28 @@ window.productModule = (function () {
         }
     }
 
-
+    async function toggleProductStatus(id) {
+        const token = getToken();
+        try {
+            const res = await fetch(`/api/products/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', authorization: token },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (data.success) {
+                loadProducts();
+                adminApp.showToast(`Product status changed to ${data.product.status}`);
+            } else {
+                adminApp.showToast('Error updating product status: ' + data.message, 'error');
+            }
+        } catch (err) {
+            adminApp.showToast('Error: ' + err.message, 'error');
+        }
+    }
 
     async function deleteProduct(id) {
-        if (!confirm('Are you sure you want to delete this product?')) return;
+        if (!confirm('Are you sure you want to permanently delete this product? This action cannot be undone.')) return;
         const token = getToken();
         const res = await fetch(`/api/products/${id}`, {
             method: 'DELETE',
@@ -602,9 +649,11 @@ window.productModule = (function () {
         window.openVariantsModal = openVariantsModal;
         window.closeVariantsModal = closeVariantsModal;
         window.saveVariant = saveVariant;
+        window.editVariant = editVariant;
         window.deleteVariant = deleteVariant;
         window.closeProductModal = closeModal;
         window.saveProduct = saveProduct;
+        window.toggleProductStatus = toggleProductStatus;
         window.deleteProduct = deleteProduct;
         window.changePage = changePage;
         window.goToPage = goToPage;

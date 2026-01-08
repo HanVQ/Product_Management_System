@@ -6,6 +6,12 @@ const colorSchema = new mongoose.Schema({
         required: true,
         trim: true,
         unique: true,
+    },
+    hex: {
+        type: String,
+        required: true,
+        uppercase: true,
+        match: /^#([0-9A-F]{6}|[0-9A-F]{3})$/,
     }
 }, { timestamps: true });
 

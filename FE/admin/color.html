@@ -23,6 +23,13 @@
                 <label>Name:</label>
                 <input type="text" id="colorName" required>
             </div>
+            <div class="form-group">
+                <label>Hex Color:</label>
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <input type="color" id="colorHex" required style="width:60px;height:40px;border:1px solid #ddd;cursor:pointer;">
+                    <input type="text" id="colorHexText" placeholder="#000000" required style="flex:1;" pattern="^#([0-9A-F]{6}|[0-9A-F]{3})$|^#([0-9a-f]{6}|[0-9a-f]{3})$" title="Valid hex colors: #RGB or #RRGGBB">
+                </div>
+            </div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeColorModal()">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save</button>
