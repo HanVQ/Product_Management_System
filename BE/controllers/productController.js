@@ -68,7 +68,19 @@ class ProductController {
         }
     }
 
-    // Delete product
+    // Toggle product status (Active/Inactive)
+    async toggleProductStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const { isActive } = req.body;
+            const product = await productService.toggleProductStatus(id, isActive);
+            res.json({ success: true, product });
+        } catch (err) {
+            res.status(400).json({ success: false, message: err.message });
+        }
+    }
+
+    // Delete product (soft delete)
     async removeProduct(req, res) {
         try {
             const { id } = req.params;

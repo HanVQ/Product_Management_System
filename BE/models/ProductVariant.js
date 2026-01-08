@@ -34,6 +34,10 @@ const productVariantSchema = new mongoose.Schema({
         unique: true,
         sparse: true,
         default: () => `PV-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+    },
+    isActive: {
+        type: Boolean,
+        default: true
     }
 }, { timestamps: true });
 

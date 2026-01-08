@@ -16,7 +16,7 @@ class ProductService {
             } = filters;
 
             // Build MongoDB query
-            let query = {};
+            let query = { isActive: true };
 
             // Search by name or description
             if (search) {
@@ -55,7 +55,7 @@ class ProductService {
 
             // For each product, load variants and calculate total stock
             for (const product of products) {
-                const variants = await ProductVariant.find({ product: product._id });
+                const variants = await ProductVariant.find({ product: product._id, isActive: true });
                 product.variants = variants;
                 // Now totalStock virtual field will be calculated
             }
@@ -99,8 +99,11 @@ class ProductService {
             if (!product) {
                 throw new Error('Product not found');
             }
-            // Load variants for this product
-            const variants = await ProductVariant.find({ product: product._id });
+            if (!product.isActive) {
+                throw new Error('Product not found');
+            }
+            // Load active variants for this product
+            const variants = await ProductVariant.find({ product: product._id, isActive: true });
             product.variants = variants;
             return product;
         } catch (error) {
@@ -202,18 +205,36 @@ class ProductService {
         }
     }
 
+    async toggleProductStatus(id, isActive) {
+        try {
+            const product = await Product.findById(id);
+            if (!product) throw new Error('Product not found');
+
+            // Toggle the status field between Active and Inactive
+            product.status = product.status === 'Active' ? 'Inactive' : 'Active';
+            await product.save();
+
+            return product;
+        } catch (error) {
+            throw new Error(`Error toggling product status: ${error.message}`);
+        }
+    }
+
     async deleteProduct(id) {
         try {
             const product = await Product.findById(id);
             if (!product) throw new Error('Product not found');
 
-            // Prevent deletion if variants exist
-            const variants = await ProductVariant.find({ product: product._id });
-            if (variants.length > 0) {
-                throw new Error('Cannot delete product: variants exist. Remove variants first.');
-            }
+            // Soft delete: mark product as inactive
+            product.isActive = false;
+            await product.save();
 
-            await Product.findByIdAndDelete(id);
+            // Mark all variants of this product as inactive
+            await ProductVariant.updateMany(
+                { product: product._id },
+                { isActive: false }
+            );
+
             return product;
         } catch (error) {
             throw new Error(`Error deleting product: ${error.message}`);

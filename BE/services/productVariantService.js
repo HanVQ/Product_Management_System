@@ -34,9 +34,6 @@ class ProductVariantService {
         if (!product) {
             throw new Error('Product ID is required');
         }
-        if (price === undefined || price === null) {
-            throw new Error('Price is required');
-        }
 
         // Verify product exists
         const prod = await Product.findById(product);
@@ -45,14 +42,19 @@ class ProductVariantService {
         }
 
         // Normalize optional fields - convert empty strings to null
-        const sizeVal = (size && size !== '') ? size : null;
-        const colorVal = (color && color !== '') ? color : null;
+        if (size === '' || size === undefined) {
+            throw new Error('Size not null');
+        }
+
+        if (color === '' || color === undefined) {
+            throw new Error('Color not null');
+        }
 
         // Check for duplicate variant (same product + size + color combination)
         const existingVariant = await ProductVariant.findOne({
             product,
-            size: sizeVal,
-            color: colorVal
+            size: size,
+            color: color
         });
 
         if (existingVariant) {
@@ -62,9 +64,9 @@ class ProductVariantService {
         // Create and save new variant
         const variant = new ProductVariant({
             product,
-            size: sizeVal,
-            color: colorVal,
-            price,
+            size: size,
+            color: color,
+            price: price || 0,
             stock: stock || 0
         });
 

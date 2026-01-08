@@ -41,6 +41,15 @@ const productSchema = new mongoose.Schema({
         type: String,
         unique: true,
         default: () => `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+    },
+    status: {
+        type: String,
+        enum: ['Active', 'Inactive'],
+        default: 'Active'
+    },
+    isActive: {
+        type: Boolean,
+        default: true
     }
 }, {
     timestamps: true,

@@ -11,6 +11,7 @@ router.post('/', (req, res) => productController.createProduct(req, res));
 router.post('/bulk', (req, res) => productController.createManyProduct(req, res));
 router.get('/:id', (req, res) => productController.getProduct(req, res));
 router.put('/:id', (req, res) => productController.updateProduct(req, res));
+router.patch('/:id', (req, res) => productController.toggleProductStatus(req, res));
 router.delete('/:id', (req, res) => productController.removeProduct(req, res));
 
 // // READ: user + admin
