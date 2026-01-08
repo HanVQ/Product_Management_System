@@ -3,7 +3,7 @@ const Product = require('../models/Product');
 const ProductVariant = require('../models/ProductVariant');
 
 class InventoryService {
-    async listTransactions() {
+    async getListTransactions() {
         try {
             return await Inventory.find()
                 .populate('product', 'name')

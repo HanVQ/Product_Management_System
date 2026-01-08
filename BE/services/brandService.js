@@ -1,7 +1,7 @@
 const Brand = require('../models/Brand');
 
 class BrandService {
-    async listBrands() {
+    async getListBrands() {
         try {
             return await Brand.find();
         } catch (error) {

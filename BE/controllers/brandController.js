@@ -2,9 +2,9 @@ const brandService = require('../services/brandService');
 
 class BrandController {
     // List brands
-    async listBrand(req, res) {
+    async getListBrand(req, res) {
         try {
-            const brands = await brandService.listBrands();
+            const brands = await brandService.getListBrands();
             res.json({ success: true, data: brands });
         } catch (error) {
             res.status(500).json({ message: 'Error retrieving brands', error: error.message });

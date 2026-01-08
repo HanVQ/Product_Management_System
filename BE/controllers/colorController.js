@@ -1,9 +1,9 @@
 const colorService = require('../services/colorService');
 
 class ColorController {
-    async listColor(req, res) {
+    async getListColor(req, res) {
         try {
-            const colors = await colorService.listColors();
+            const colors = await colorService.getListColors();
             res.json({ success: true, colors });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });

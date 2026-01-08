@@ -2,9 +2,9 @@ const customerService = require('../services/customerService');
 
 class CustomerController {
     // List customers
-    async listCustomer(req, res) {
+    async getListCustomer(req, res) {
         try {
-            const customers = await customerService.listCustomers();
+            const customers = await customerService.getListCustomers();
             res.json({ success: true, customers });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });

@@ -1,9 +1,9 @@
 const sizeService = require('../services/sizeService');
 
 class SizeController {
-    async listSize(req, res) {
+    async getListSize(req, res) {
         try {
-            const sizes = await sizeService.listSizes();
+            const sizes = await sizeService.getListSizes();
             res.json({ success: true, sizes });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });

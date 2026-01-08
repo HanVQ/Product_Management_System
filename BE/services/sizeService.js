@@ -1,7 +1,7 @@
 const Size = require('../models/Size');
 
 class SizeService {
-    async listSizes() {
+    async getListSizes() {
         try {
             return await Size.find().sort({ name: 1 });
         } catch (error) {

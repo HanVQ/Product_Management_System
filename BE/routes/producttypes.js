@@ -6,7 +6,7 @@ const { authenticate, requireRole } = require('../middleware/auth');
 // All routes protected and require admin role
 router.use(authenticate, requireRole('admin'));
 
-router.get('/', (req, res) => productTypeController.listProductType(req, res));
+router.get('/', (req, res) => productTypeController.getListProductType(req, res));
 router.post('/', (req, res) => productTypeController.createProductType(req, res));
 router.post('/bulk', (req, res) => productTypeController.createManyProductType(req, res));
 router.get('/:id', (req, res) => productTypeController.getProductType(req, res));

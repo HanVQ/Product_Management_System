@@ -1,7 +1,7 @@
 const Color = require('../models/Color');
 
 class ColorService {
-    async listColors() {
+    async getListColors() {
         try {
             return await Color.find().sort({ name: 1 });
         } catch (error) {

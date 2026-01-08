@@ -2,7 +2,7 @@ const ProductVariant = require('../models/ProductVariant');
 const Product = require('../models/Product');
 
 class ProductVariantService {
-    async listVariants(filters = {}) {
+    async getListVariants(filters = {}) {
         const { product } = filters;
         const query = {};
 

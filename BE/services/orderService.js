@@ -5,7 +5,7 @@ const Customer = require('../models/Customer');
 const Inventory = require('../models/Inventory');
 
 class OrderService {
-    async listOrders() {
+    async getListOrders() {
         try {
             return await Order.find()
                 .populate('customer', 'name email')

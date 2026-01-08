@@ -2,7 +2,7 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
 class UserService {
-    async listUsers() {
+    async getListUsers() {
         try {
             return await User.find().select('-password');
         } catch (error) {

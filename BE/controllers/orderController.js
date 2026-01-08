@@ -2,9 +2,9 @@ const orderService = require('../services/orderService');
 
 class OrderController {
     // List orders
-    async listOrder(req, res) {
+    async getListOrder(req, res) {
         try {
-            const orders = await orderService.listOrders();
+            const orders = await orderService.getListOrders();
             res.json({ success: true, orders });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });

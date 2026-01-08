@@ -1,7 +1,7 @@
 const Customer = require('../models/Customer');
 
 class CustomerService {
-    async listCustomers() {
+    async getListCustomers() {
         try {
             return await Customer.find().sort({ createdAt: -1 });
         } catch (error) {

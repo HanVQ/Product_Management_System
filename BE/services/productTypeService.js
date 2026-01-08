@@ -1,7 +1,7 @@
 const ProductType = require('../models/ProductType');
 
 class ProductTypeService {
-    async listProductTypes() {
+    async getListProductTypes() {
         try {
             return await ProductType.find();
         } catch (error) {

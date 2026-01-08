@@ -2,7 +2,7 @@ const Product = require('../models/Product');
 const ProductVariant = require('../models/ProductVariant');
 
 class ProductService {
-    async listProducts(filters = {}) {
+    async getListProducts(filters = {}) {
         try {
             const {
                 search = '',

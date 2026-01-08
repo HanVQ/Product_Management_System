@@ -2,9 +2,9 @@ const productTypeService = require('../services/productTypeService');
 
 class ProductTypeController {
     // List product types
-    async listProductType(req, res) {
+    async getListProductType(req, res) {
         try {
-            const productTypes = await productTypeService.listProductTypes();
+            const productTypes = await productTypeService.getListProductTypes();
             res.json({ success: true, data: productTypes });
         } catch (error) {
             res.status(500).json({ message: 'Error retrieving product types', error: error.message });

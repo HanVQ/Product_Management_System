@@ -2,7 +2,7 @@ const productService = require('../services/productService');
 
 class ProductController {
     // List products with filtering, sorting, and pagination
-    async listProduct(req, res) {
+    async getListProduct(req, res) {
         try {
             const filters = {
                 search: req.query.search || '',
@@ -14,7 +14,7 @@ class ProductController {
                 page: req.query.page || 1,
                 limit: req.query.limit || 10
             };
-            const result = await productService.listProducts(filters);
+            const result = await productService.getListProducts(filters);
             res.json({ success: true, ...result });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });
@@ -26,12 +26,7 @@ class ProductController {
         try {
             const { id } = req.params;
             const product = await productService.getProductById(id);
-            // Populate variants if any
-            const ProductVariant = require('../models/ProductVariant');
-            const variants = await ProductVariant.find({ product: product._id });
-            // Attach variants to product for virtual field calculation
-            product.variants = variants;
-            res.json({ success: true, product, variants });
+            res.json({ success: true, product });
         } catch (err) {
             res.status(404).json({ success: false, message: err.message });
         }

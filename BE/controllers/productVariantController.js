@@ -1,10 +1,10 @@
 const productVariantService = require('../services/productVariantService');
 
 class ProductVariantController {
-    async listProductVariant(req, res) {
+    async getListProductVariant(req, res) {
         try {
             const { product } = req.query;
-            const variants = await productVariantService.listVariants({ product });
+            const variants = await productVariantService.getListVariants({ product });
             res.json({ success: true, variants });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });

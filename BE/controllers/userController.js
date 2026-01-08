@@ -2,9 +2,9 @@ const userService = require('../services/userService');
 
 class UserController {
     // List users (admin)
-    async listUser(req, res) {
+    async getListUser(req, res) {
         try {
-            const users = await userService.listUsers();
+            const users = await userService.getListUsers();
             res.json({ success: true, users });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });
