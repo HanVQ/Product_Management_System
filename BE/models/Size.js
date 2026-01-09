@@ -6,6 +6,11 @@ const sizeSchema = new mongoose.Schema({
         required: true,
         trim: true,
         unique: true,
+    },
+    status: {
+        type: String,
+        enum: ['Active', 'Inactive'],
+        default: 'Active'
     }
 }, { timestamps: true });
 

@@ -7,6 +7,11 @@ const productTypeSchema = new mongoose.Schema({
         trim: true,
         unique: true
     },
+    status: {
+        type: String,
+        enum: ['Active', 'Inactive'],
+        default: 'Active'
+    },
     description: {
         type: String,
         trim: true,

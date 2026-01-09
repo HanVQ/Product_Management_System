@@ -10,6 +10,11 @@ const brandSchema = new mongoose.Schema({
     description: {
         type: String,
         trim: true,
+    },
+    status: {
+        type: String,
+        enum: ['Active', 'Inactive'],
+        default: 'Active'
     }
 }, { timestamps: true });
 
