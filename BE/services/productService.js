@@ -123,7 +123,7 @@ class ProductService {
                 name,
                 description,
                 price,
-                stock: stock || 0,
+                stock: 0,
                 productType,
                 brand
             });
