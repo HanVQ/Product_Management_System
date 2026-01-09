@@ -225,6 +225,12 @@ class ProductService {
             const product = await Product.findById(id);
             if (!product) throw new Error('Product not found');
 
+            // Check if product has variants
+            const variantCount = await ProductVariant.countDocuments({ product: product._id });
+            if (variantCount > 0) {
+                throw new Error(`Cannot delete product with ${variantCount} variant(s). Delete all variants first.`);
+            }
+
             // Soft delete: mark product as inactive
             product.isActive = false;
             await product.save();
