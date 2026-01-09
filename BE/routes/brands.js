@@ -11,6 +11,7 @@ router.post('/', (req, res) => brandController.createBrand(req, res));
 router.post('/bulk', (req, res) => brandController.createManyBrand(req, res));
 router.get('/:id', (req, res) => brandController.getBrand(req, res));
 router.put('/:id', (req, res) => brandController.updateBrand(req, res));
+router.patch('/:id', (req, res) => brandController.toggleBrandStatus(req, res));
 router.delete('/:id', (req, res) => brandController.removeBrand(req, res));
 
 module.exports = router;

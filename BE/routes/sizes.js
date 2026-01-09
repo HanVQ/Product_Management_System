@@ -9,6 +9,7 @@ router.use(authenticate, requireRole('admin'));
 router.get('/', (req, res) => sizeController.getListSize(req, res));
 router.post('/', (req, res) => sizeController.createSize(req, res));
 router.put('/:id', (req, res) => sizeController.updateSize(req, res));
+router.patch('/:id', (req, res) => sizeController.toggleSizeStatus(req, res));
 router.delete('/:id', (req, res) => sizeController.deleteSize(req, res));
 
 module.exports = router;
