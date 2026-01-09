@@ -63,6 +63,17 @@ class BrandController {
             res.status(404).json({ message: 'Error deleting brand', error: error.message });
         }
     }
+
+    // Toggle brand status
+    async toggleBrandStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const brand = await brandService.toggleBrandStatus(id);
+            res.json({ success: true, brand });
+        } catch (err) {
+            res.status(400).json({ success: false, message: err.message });
+        }
+    }
 }
 
 module.exports = new BrandController();

@@ -40,6 +40,14 @@ class SizeController {
             res.status(400).json({ success: false, message: err.message });
         }
     }
-}
+    async toggleSizeStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const size = await sizeService.toggleSizeStatus(id);
+            res.json({ success: true, size });
+        } catch (err) {
+            res.status(400).json({ success: false, message: err.message });
+        }
+    }}
 
 module.exports = new SizeController();

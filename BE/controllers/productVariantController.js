@@ -49,6 +49,14 @@ class ProductVariantController {
             res.status(404).json({ success: false, message: err.message });
         }
     }
-}
+    async toggleVariantStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const variant = await productVariantService.toggleVariantStatus(id);
+            res.json({ success: true, variant });
+        } catch (err) {
+            res.status(400).json({ success: false, message: err.message });
+        }
+    }}
 
 module.exports = new ProductVariantController();
