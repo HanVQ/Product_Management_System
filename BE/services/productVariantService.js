@@ -125,5 +125,19 @@ class ProductVariantService {
         }
         return variant;
     }
+
+    async toggleVariantStatus(id) {
+        try {
+            const variant = await ProductVariant.findById(id);
+            if (!variant) {
+                throw new Error('Variant not found');
+            }
+            variant.status = variant.status === 'Active' ? 'Inactive' : 'Active';
+            await variant.save();
+            return variant;
+        } catch (error) {
+            throw new Error(`Error toggling variant status: ${error.message}`);
+        }
+    }
 }
 module.exports = new ProductVariantService();

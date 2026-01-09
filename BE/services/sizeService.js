@@ -64,6 +64,20 @@ class SizeService {
             throw new Error(`Error deleting size: ${error.message}`);
         }
     }
+
+    async toggleSizeStatus(id) {
+        try {
+            const size = await Size.findById(id);
+            if (!size) {
+                throw new Error('Size not found');
+            }
+            size.status = size.status === 'Active' ? 'Inactive' : 'Active';
+            await size.save();
+            return size;
+        } catch (error) {
+            throw new Error(`Error toggling size status: ${error.message}`);
+        }
+    }
 }
 
 module.exports = new SizeService();

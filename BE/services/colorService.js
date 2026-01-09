@@ -71,6 +71,20 @@ class ColorService {
             throw new Error(`Error deleting color: ${error.message}`);
         }
     }
+
+    async toggleColorStatus(id) {
+        try {
+            const color = await Color.findById(id);
+            if (!color) {
+                throw new Error('Color not found');
+            }
+            color.status = color.status === 'Active' ? 'Inactive' : 'Active';
+            await color.save();
+            return color;
+        } catch (error) {
+            throw new Error(`Error toggling color status: ${error.message}`);
+        }
+    }
 }
 
 module.exports = new ColorService();

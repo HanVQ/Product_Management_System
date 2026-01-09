@@ -146,6 +146,20 @@ class UserService {
             throw new Error(`Error deleting user: ${error.message}`);
         }
     }
+
+    async toggleUserStatus(id) {
+        try {
+            const user = await User.findById(id);
+            if (!user) {
+                throw new Error('User not found');
+            }
+            user.status = user.status === 'Active' ? 'Inactive' : 'Active';
+            await user.save();
+            return user;
+        } catch (error) {
+            throw new Error(`Error toggling user status: ${error.message}`);
+        }
+    }
 }
 
 module.exports = new UserService();

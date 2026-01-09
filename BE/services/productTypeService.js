@@ -100,6 +100,21 @@ class ProductTypeService {
         }
     }
 
+    async toggleProductTypeStatus(id, isActive) {
+            try {
+                const productType = await ProductType.findById(id);
+                if (!productType) throw new Error('Product type not found');
+
+                // Toggle the status field between Active and Inactive
+                productType.status = productType.status === 'Active' ? 'Inactive' : 'Active';
+                await productType.save();
+
+                return productType;
+            } catch (error) {
+                throw new Error(`Error toggling product type status: ${error.message}`);
+            }
+        }
+
     async deleteProductType(id) {
         try {
             const productType = await ProductType.findByIdAndDelete(id);

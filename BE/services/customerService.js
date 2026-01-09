@@ -113,6 +113,20 @@ class CustomerService {
             throw new Error(`Error deleting customer: ${error.message}`);
         }
     }
+
+    async toggleCustomerStatus(id) {
+        try {
+            const customer = await Customer.findById(id);
+            if (!customer) {
+                throw new Error('Customer not found');
+            }
+            customer.status = customer.status === 'Active' ? 'Inactive' : 'Active';
+            await customer.save();
+            return customer;
+        } catch (error) {
+            throw new Error(`Error toggling customer status: ${error.message}`);
+        }
+    }
 }
 
 module.exports = new CustomerService();
