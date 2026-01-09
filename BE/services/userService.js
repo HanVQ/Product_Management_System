@@ -24,7 +24,7 @@ class UserService {
 
     async createUser(userData) {
         try {
-            const { name, email, password, role } = userData;
+            const { name, email, password, role, emailVerified} = userData;
             
             if (!name || !email) {
                 throw new Error('Name and email are required');
@@ -44,7 +44,8 @@ class UserService {
                 name,
                 email: email.toLowerCase(),
                 password: hashed,
-                role: role || 'user'
+                role: role || 'user',
+                emailVerified: emailVerified || true
             });
 
             await newUser.save();
@@ -88,7 +89,8 @@ class UserService {
                     name: u.name,
                     email: emailLower,
                     password: hashed,
-                    role: u.role || 'user'
+                    role: u.role || 'user',
+                    emailVerified: u.emailVerified || true
                 });
             }
 
