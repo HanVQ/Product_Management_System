@@ -250,6 +250,7 @@ window.productModule = (function () {
         document.getElementById('variantsError').style.display = 'none';
         document.getElementById('variantPrice').value = '';
         document.getElementById('variantStock').value = '';
+        document.getElementById('variantStatus').value = 'Active';
         await loadSizesAndColors();
         await loadVariantsForProduct(productId);
         document.getElementById('variantsModal').classList.add('show');
@@ -282,11 +283,13 @@ window.productModule = (function () {
             cont.innerHTML = '<div style="text-align:center;padding:20px;color:#666">No variants found for this product.</div>';
             return;
         }
-        let html = '<table style="width:100%;border-collapse:collapse;font-size:15px"><thead><tr style="background:#f0f0f0;font-weight:600"><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">SKU</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Size</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Color</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Price</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Stock</th><th style="padding:12px;text-align:center;border-bottom:2px solid #ddd">Action</th></tr></thead><tbody>';
+        let html = '<table style="width:100%;border-collapse:collapse;font-size:15px"><thead><tr style="background:#f0f0f0;font-weight:600"><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">SKU</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Size</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Color</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Price</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Stock</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Status</th><th style="padding:12px;text-align:center;border-bottom:2px solid #ddd">Action</th></tr></thead><tbody>';
         list.forEach(v => {
             const sizeName = (v.size && v.size.name) || (allSizes.find(s => s._id === (v.size || '')) || {}).name || '—';
             const colorName = (v.color && v.color.name) || (allColors.find(c => c._id === (v.color || '')) || {}).name || '—';
-            html += `<tr style="border-bottom:1px solid #eee"><td style="padding:12px">${v.sku || '—'}</td><td style="padding:12px">${sizeName}</td><td style="padding:12px">${colorName}</td><td style="padding:12px">${(v.price || 0).toLocaleString('vi-VN')} ₫</td><td style="padding:12px">${v.stock || 0}</td><td style="padding:12px;text-align:center"><button class="btn btn-warning" onclick="editVariant('${v._id}')" style="padding:6px 12px;margin-right:6px;font-size:13px">Edit</button> <button class="btn btn-danger" onclick="deleteVariant('${v._id}')" style="padding:6px 12px;font-size:13px">Delete</button></td></tr>`;
+            const statusClass = v.status === 'Active' ? 'status-active' : 'status-inactive';
+            const statusText = v.status || 'Active';
+            html += `<tr style="border-bottom:1px solid #eee"><td style="padding:12px">${v.sku || '—'}</td><td style="padding:12px">${sizeName}</td><td style="padding:12px">${colorName}</td><td style="padding:12px">${(v.price || 0).toLocaleString('vi-VN')} ₫</td><td style="padding:12px">${v.stock || 0}</td><td style="padding:12px"><span class="status-badge ${statusClass}" onclick="toggleVariantStatus('${v._id}')" style="cursor:pointer;">${statusText}</span></td><td style="padding:12px;text-align:center"><button class="btn btn-warning" onclick="editVariant('${v._id}')" style="padding:6px 12px;margin-right:6px;font-size:13px">Edit</button> <button class="btn btn-danger" onclick="deleteVariant('${v._id}')" style="padding:6px 12px;font-size:13px">Delete</button></td></tr>`;
         });
         html += '</tbody></table>';
         cont.innerHTML = html;
@@ -304,6 +307,7 @@ window.productModule = (function () {
                 document.getElementById('variantColor').value = v.color ? (v.color._id || v.color) : '';
                 document.getElementById('variantPrice').value = v.price || '';
                 document.getElementById('variantStock').value = v.stock || '';
+                document.getElementById('variantStatus').value = v.status || 'Active';
                 document.querySelector('#variantForm button[type="submit"]').innerText = 'Update Variant';
                 document.getElementById('variantsError').style.display = 'none';
             }
@@ -321,13 +325,14 @@ window.productModule = (function () {
         const color = document.getElementById('variantColor').value || null;
         const price = document.getElementById('variantPrice').value ? parseFloat(document.getElementById('variantPrice').value) : undefined;
         const stock = document.getElementById('variantStock').value ? parseInt(document.getElementById('variantStock').value) : undefined;
+        const status = document.getElementById('variantStatus').value;
 
         try {
             const method = editingVariantId ? 'PUT' : 'POST';
             const url = editingVariantId ? `/api/productvariants/${editingVariantId}` : '/api/productvariants';
             const body = editingVariantId
-                ? { size: size || undefined, color: color || undefined, price, stock }
-                : { product: currentVariantsProductId, size: size || undefined, color: color || undefined, price, stock };
+                ? { size: size || undefined, color: color || undefined, price, stock, status }
+                : { product: currentVariantsProductId, size: size || undefined, color: color || undefined, price, stock, status };
 
             const res = await fetch(url, {
                 method,
@@ -338,6 +343,7 @@ window.productModule = (function () {
             if (data.success) {
                 document.getElementById('variantPrice').value = '';
                 document.getElementById('variantStock').value = '';
+                document.getElementById('variantStatus').value = 'Active';
                 document.getElementById('variantSize').value = '';
                 document.getElementById('variantColor').value = '';
                 editingVariantId = null;
@@ -372,6 +378,28 @@ window.productModule = (function () {
             }
         } catch (err) {
             adminApp.showToast('Error deleting variant: ' + err.message, 'error');
+        }
+    }
+
+    async function toggleVariantStatus(id) {
+        const token = getToken();
+        try {
+            const res = await fetch(`/api/productvariants/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', authorization: token },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (currentVariantsProductId) {
+                    await loadVariantsForProduct(currentVariantsProductId);
+                    await loadProducts();
+                }
+            } else {
+                adminApp.showToast('Error updating variant status: ' + data.message, 'error');
+            }
+        } catch (err) {
+            adminApp.showToast('Error: ' + err.message, 'error');
         }
     }
 
@@ -651,6 +679,7 @@ window.productModule = (function () {
         window.saveVariant = saveVariant;
         window.editVariant = editVariant;
         window.deleteVariant = deleteVariant;
+        window.toggleVariantStatus = toggleVariantStatus;
         window.closeProductModal = closeModal;
         window.saveProduct = saveProduct;
         window.toggleProductStatus = toggleProductStatus;

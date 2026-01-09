@@ -38,14 +38,17 @@ window.brandModule = (function () {
         const end = start + perPage;
         const pageData = filteredBrands.slice(start, end);
 
-        let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Description</th><th style="width:140px">Action</th></tr></thead><tbody>';
+        let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Description</th><th>Status</th><th style="width:140px">Action</th></tr></thead><tbody>';
         pageData.forEach((b, idx) => {
+            const statusClass = b.status === 'Active' ? 'status-active' : 'status-inactive';
+            const statusText = b.status || 'Active';
             html += `<tr>
         <td>${start + idx + 1}</td>
         <td>${b.name || ''}</td>
         <td>${(b.description || '').substring(0, 50)}${(b.description || '').length > 50 ? '...' : ''}</td>
+        <td><span class="status-badge ${statusClass}" onclick="toggleBrandStatus('${b._id}')" style="cursor:pointer;">${statusText}</span></td>
         <td class="action"><div class="action-btns">
-          <button class="btn btn-warning" onclick="editBrandModal('${b._id}', '${escapeHtml(b.name || '')}', '${escapeHtml(b.description || '')}')">Edit</button>
+          <button class="btn btn-warning" onclick="editBrandModal('${b._id}', '${escapeHtml(b.name || '')}', '${escapeHtml(b.description || '')}', '${b.status}')">Edit</button>
           <button class="btn btn-danger" onclick="deleteBrand('${b._id}')">Delete</button>
         </div></td>
       </tr>`;
@@ -121,6 +124,7 @@ window.brandModule = (function () {
         const modalTitle = document.getElementById('modalTitle');
         const brandName = document.getElementById('brandName');
         const brandDescription = document.getElementById('brandDescription');
+        const brandStatus = document.getElementById('brandStatus');
         const modalError = document.getElementById('modalError');
         const brandModal = document.getElementById('brandModal');
 
@@ -129,15 +133,17 @@ window.brandModule = (function () {
         modalTitle.innerText = 'Add Brand';
         brandName.value = '';
         brandDescription.value = '';
+        brandStatus.value = 'Active';
         modalError.style.display = 'none';
         brandModal.classList.add('show');
     }
 
-    function openEditModal(id, name, description) {
+    function openEditModal(id, name, description, status) {
         editingBrandID = id;
         const modalTitle = document.getElementById('modalTitle');
         const brandName = document.getElementById('brandName');
         const brandDescription = document.getElementById('brandDescription');
+        const brandStatus = document.getElementById('brandStatus');
         const modalError = document.getElementById('modalError');
         const brandModal = document.getElementById('brandModal');
 
@@ -146,6 +152,7 @@ window.brandModule = (function () {
         modalTitle.innerText = 'Edit Brand';
         brandName.value = name;
         brandDescription.value = description;
+        brandStatus.value = status || 'Active';
         modalError.style.display = 'none';
         brandModal.classList.add('show');
     }
@@ -162,6 +169,7 @@ window.brandModule = (function () {
         const token = getToken();
         const name = document.getElementById('brandName').value.trim();
         const description = document.getElementById('brandDescription').value.trim();
+        const status = document.getElementById('brandStatus').value;
 
         if (!name) {
             const modalError = document.getElementById('modalError');
@@ -178,7 +186,7 @@ window.brandModule = (function () {
                 'Content-Type': 'application/json',
                 authorization: token
             },
-            body: JSON.stringify({ name, description })
+            body: JSON.stringify({ name, description, status })
         });
         const data = await res.json();
         if (data.success) {
@@ -207,6 +215,25 @@ window.brandModule = (function () {
         }
     }
 
+    async function toggleBrandStatus(id) {
+        const token = getToken();
+        try {
+            const res = await fetch(`/api/brands/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', authorization: token },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (data.success) {
+                loadBrands();
+            } else {
+                alert('Error updating brand status: ' + data.message);
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+
     function escapeHtml(str) { return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;').replace(/"/g, '&quot;'); }
 
     function init() {
@@ -217,6 +244,7 @@ window.brandModule = (function () {
         window.closeBrandModal = closeModal;
         window.saveBrand = saveBrand;
         window.deleteBrand = deleteBrand;
+        window.toggleBrandStatus = toggleBrandStatus;
         window.changePage = changePage;
         window.goToPage = goToPage;
         const entries = document.getElementById('entriesPerPage');

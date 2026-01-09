@@ -24,9 +24,11 @@ window.sizeModule = (function () {
             cont.innerHTML = '<p>No sizes found. Create one to get started.</p>';
             return;
         }
-        let html = '<div class="table-responsive"><table><thead><tr><th>#</th><th>Name</th><th style="width:150px">Action</th></tr></thead><tbody>';
+        let html = '<div class="table-responsive"><table><thead><tr><th>#</th><th>Name</th><th>Status</th><th style="width:150px">Action</th></tr></thead><tbody>';
         allSizes.forEach((s, idx) => {
-            html += `<tr><td>${idx + 1}</td><td>${s.name || ''}</td><td><button class="btn btn-warning" onclick="editSize('${s._id}', '${s.name}')">Edit</button> <button class="btn btn-danger" onclick="deleteSize('${s._id}')">Delete</button></td></tr>`;
+            const statusClass = s.status === 'Active' ? 'status-active' : 'status-inactive';
+            const statusText = s.status || 'Active';
+            html += `<tr><td>${idx + 1}</td><td>${s.name || ''}</td><td><span class="status-badge ${statusClass}" onclick="toggleSizeStatus('${s._id}')" style="cursor:pointer;">${statusText}</span></td><td><button class="btn btn-warning" onclick="editSize('${s._id}', '${s.name}', '${s.status}')">Edit</button> <button class="btn btn-danger" onclick="deleteSize('${s._id}')">Delete</button></td></tr>`;
         });
         html += '</tbody></table></div>';
         cont.innerHTML = html;
@@ -36,14 +38,16 @@ window.sizeModule = (function () {
         editingSizeId = null;
         document.getElementById('sizeModalTitle').innerText = 'Add Size';
         document.getElementById('sizeName').value = '';
+        document.getElementById('sizeStatus').value = 'Active';
         document.getElementById('sizeModalError').style.display = 'none';
         document.getElementById('sizeModal').classList.add('show');
     }
 
-    function openEditSize(id, name) {
+    function openEditSize(id, name, status) {
         editingSizeId = id;
         document.getElementById('sizeModalTitle').innerText = 'Edit Size';
         document.getElementById('sizeName').value = name;
+        document.getElementById('sizeStatus').value = status || 'Active';
         document.getElementById('sizeModalError').style.display = 'none';
         document.getElementById('sizeModal').classList.add('show');
     }
@@ -56,6 +60,7 @@ window.sizeModule = (function () {
         event.preventDefault();
         const token = getToken();
         const name = document.getElementById('sizeName').value.trim();
+        const status = document.getElementById('sizeStatus').value;
         if (!name) {
             document.getElementById('sizeModalError').innerText = 'Name is required';
             document.getElementById('sizeModalError').style.display = 'block';
@@ -69,7 +74,7 @@ window.sizeModule = (function () {
             const res = await fetch(url,{
                 method,
                 headers: { 'Content-Type': 'application/json', authorization: token },
-                body: JSON.stringify({ name })
+                body: JSON.stringify({ name, status })
             });
             const data = await res.json();
             if (data.success) {
@@ -106,6 +111,25 @@ window.sizeModule = (function () {
         }
     }
 
+    async function toggleSizeStatus(id) {
+        const token = getToken();
+        try {
+            const res = await fetch(`/api/sizes/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', authorization: token },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (data.success) {
+                loadSizes();
+            } else {
+                if (adminApp && adminApp.showToast) adminApp.showToast('Error updating size status: ' + data.message, 'error');
+            }
+        } catch (err) {
+            if (adminApp && adminApp.showToast) adminApp.showToast('Error: ' + err.message, 'error');
+        }
+    }
+
     function init() {
         loadSizes();
         window.openSizeModal = openAddSize;
@@ -113,6 +137,7 @@ window.sizeModule = (function () {
         window.closeSizeModal = closeSizeModal;
         window.saveSize = saveSize;
         window.deleteSize = deleteSize;
+        window.toggleSizeStatus = toggleSizeStatus;
     }
 
     return { init };
