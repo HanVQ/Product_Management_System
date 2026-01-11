@@ -1,7 +1,8 @@
 const Product = require('../models/Product');
+const ProductVariant = require('../models/ProductVariant');
 
 class ProductService {
-    async listProducts(filters = {}) {
+    async getListProducts(filters = {}) {
         try {
             const {
                 search = '',
@@ -14,12 +15,12 @@ class ProductService {
                 limit = 10
             } = filters;
 
-            // Build MongoDB query
-            let query = {};
+            // Build MongoDB checkStatus
+            let checkStatus = { isActive: true };
 
             // Search by name or description
             if (search) {
-                query.$or = [
+                checkStatus.$or = [
                     { name: { $regex: search, $options: 'i' } },
                     { description: { $regex: search, $options: 'i' } }
                 ];
@@ -27,28 +28,17 @@ class ProductService {
 
             // Filter by productType
             if (productType) {
-                query.productType = productType;
+                checkStatus.productType = productType;
             }
 
             // Filter by brand
             if (brand) {
-                query.brand = brand;
-            }
-
-            // Filter by stock status
-            if (stockStatus) {
-                if (stockStatus.toLowerCase() === 'out of stock') {
-                    query.stock = 0;
-                } else if (stockStatus.toLowerCase() === 'low stock') {
-                    query.stock = { $gt: 0, $lte: 5 };
-                } else if (stockStatus.toLowerCase() === 'in stock') {
-                    query.stock = { $gt: 5 };
-                }
+                checkStatus.brand = brand;
             }
 
             // Validate and build sort object
-            const validSortFields = ['name', 'price', 'stock', 'createdAt'];
-            const safeSortField = validSortFields.includes(sortField) ? sortField : 'createdAt';
+            const validSortOptions = ['name', 'price', 'stock', 'createdAt'];
+            const safeSortField = validSortOptions.includes(sortField) ? sortField : 'createdAt';
             const safeSortOrder = [-1, 1].includes(Number(sortOrder)) ? Number(sortOrder) : -1;
             const sortObj = { [safeSortField]: safeSortOrder };
 
@@ -57,17 +47,40 @@ class ProductService {
             const limitNum = Math.max(1, Math.min(100, parseInt(limit) || 10)); // max 100 per page
             const skip = (pageNum - 1) * limitNum;
 
-            // Execute query
-            const products = await Product.find(query)
+            // Execute checkStatus
+            const products = await Product.find(checkStatus)
                 .sort(sortObj)
                 .skip(skip)
                 .limit(limitNum);
 
+            // For each product, load variants and calculate total stock
+            for (const product of products) {
+                const variants = await ProductVariant.find({ product: product._id, isActive: true });
+                product.variants = variants;
+                // Now totalStock virtual field will be calculated
+            }
+
+            // Apply stock status filter AFTER loading variants (since stock is now virtual)
+            let filteredStock = products;
+            if (stockStatus) {
+                filteredStock = products.filter(p => {
+                    const stock = p.totalStock || 0;
+                    if (stockStatus.toLowerCase() === 'out of stock') {
+                        return stock === 0;
+                    } else if (stockStatus.toLowerCase() === 'low stock') {
+                        return stock > 0 && stock <= 10;
+                    } else if (stockStatus.toLowerCase() === 'in stock') {
+                        return stock > 10;
+                    }
+                    return true;
+                });
+            }
+
             // Get total count for pagination metadata
-            const total = await Product.countDocuments(query);
+            const total = await Product.countDocuments(checkStatus);
 
             return {
-                products,
+                products: filteredStock,
                 pagination: {
                     page: pageNum,
                     limit: limitNum,
@@ -86,6 +99,12 @@ class ProductService {
             if (!product) {
                 throw new Error('Product not found');
             }
+            if (!product.isActive) {
+                throw new Error('Product not found');
+            }
+            // Load active variants for this product
+            const variants = await ProductVariant.find({ product: product._id, isActive: true });
+            product.variants = variants;
             return product;
         } catch (error) {
             throw new Error(`Error getting product: ${error.message}`);
@@ -104,12 +123,28 @@ class ProductService {
                 name,
                 description,
                 price,
-                stock: stock || 0,
+                stock: 0,
                 productType,
                 brand
             });
 
             await newProduct.save();
+
+            // If ProductVariant model exists and stock provided, create a default variant
+            try {
+                if (typeof ProductVariant !== 'undefined' && newProduct.stock > 0) {
+                    await ProductVariant.create({
+                        product: newProduct._id,
+                        price: newProduct.price,
+                        stock: newProduct.stock
+                    });
+                    // keep product.stock for backward compatibility
+                }
+            } catch (e) {
+                // non-fatal: variant creation failed
+                console.warn('Variant creation skipped:', e.message);
+            }
+
             return newProduct;
         } catch (error) {
             throw new Error(`Error creating product: ${error.message}`);
@@ -161,18 +196,51 @@ class ProductService {
             product.brand = brand !== undefined ? brand : product.brand;
 
             await product.save();
+
+            // If product stock changed and variants exist, you may want to sync.
+            // For now, do not auto-adjust variants to avoid unexpected changes.
             return product;
         } catch (error) {
             throw new Error(`Error updating product: ${error.message}`);
         }
     }
 
+    async toggleProductStatus(id, isActive) {
+        try {
+            const product = await Product.findById(id);
+            if (!product) throw new Error('Product not found');
+
+            // Toggle the status field between Active and Inactive
+            product.status = product.status === 'Active' ? 'Inactive' : 'Active';
+            await product.save();
+
+            return product;
+        } catch (error) {
+            throw new Error(`Error toggling product status: ${error.message}`);
+        }
+    }
+
     async deleteProduct(id) {
         try {
-            const product = await Product.findByIdAndDelete(id);
-            if (!product) {
-                throw new Error('Product not found');
+            const product = await Product.findById(id);
+            if (!product) throw new Error('Product not found');
+
+            // Check if product has variants
+            const variantCount = await ProductVariant.countDocuments({ product: product._id });
+            if (variantCount > 0) {
+                throw new Error(`Cannot delete product with ${variantCount} variant(s). Delete all variants first.`);
             }
+
+            // Soft delete: mark product as inactive
+            product.isActive = false;
+            await product.save();
+
+            // Mark all variants of this product as inactive
+            await ProductVariant.updateMany(
+                { product: product._id },
+                { isActive: false }
+            );
+
             return product;
         } catch (error) {
             throw new Error(`Error deleting product: ${error.message}`);

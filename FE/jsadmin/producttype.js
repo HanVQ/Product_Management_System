@@ -34,14 +34,17 @@ window.productTypeModule = (function () {
         const end = start + perPage;
         const pageData = filteredProductTypes.slice(start, end);
 
-        let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Description</th><th style="width:140px">Action</th></tr></thead><tbody>';
+        let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Description</th><th>Status</th><th style="width:140px">Action</th></tr></thead><tbody>';
         pageData.forEach((pt, idx) => {
+            const statusClass = pt.status === 'Active' ? 'status-active' : 'status-inactive';
+            const statusText = pt.status || 'Active';
             html += `<tr>
         <td>${start + idx + 1}</td>
         <td>${pt.name || ''}</td>
         <td>${(pt.description || '').substring(0, 50)}${(pt.description || '').length > 50 ? '...' : ''}</td>
+        <td><span class="status-badge ${statusClass}" onclick="toggleProductTypeStatus('${pt._id}')" style="cursor:pointer;">${statusText}</span></td>
         <td class="action"><div class="action-btns">
-          <button class="btn btn-warning" onclick="editProductTypeModal('${pt._id}', '${escapeHtml(pt.name || '')}', '${escapeHtml(pt.description || '')}')">Edit</button>
+          <button class="btn btn-warning" onclick="editProductTypeModal('${pt._id}', '${escapeHtml(pt.name || '')}', '${escapeHtml(pt.description || '')}', '${pt.status}')">Edit</button>
           <button class="btn btn-danger" onclick="deleteProductType('${pt._id}')">Delete</button>
         </div></td>
       </tr>`;
@@ -128,6 +131,7 @@ window.productTypeModule = (function () {
         const modalTitle = document.getElementById('modalTitle');
         const productTypeName = document.getElementById('productTypeName');
         const productTypeDescription = document.getElementById('productTypeDescription');
+        const productTypeStatus = document.getElementById('productTypeStatus');
         const modalError = document.getElementById('modalError');
         const productTypeModal = document.getElementById('productTypeModal');
 
@@ -139,15 +143,17 @@ window.productTypeModule = (function () {
         modalTitle.innerText = 'Add Product Type';
         productTypeName.value = '';
         productTypeDescription.value = '';
+        productTypeStatus.value = 'Active';
         modalError.style.display = 'none';
         productTypeModal.classList.add('show');
     }
 
-    function openEditModal(id, name, description) {
+    function openEditModal(id, name, description, status) {
         editingProductTypeId = id;
         const modalTitle = document.getElementById('modalTitle');
         const productTypeName = document.getElementById('productTypeName');
         const productTypeDescription = document.getElementById('productTypeDescription');
+        const productTypeStatus = document.getElementById('productTypeStatus');
         const modalError = document.getElementById('modalError');
         const productTypeModal = document.getElementById('productTypeModal');
 
@@ -159,6 +165,7 @@ window.productTypeModule = (function () {
         modalTitle.innerText = 'Edit Product Type';
         productTypeName.value = name;
         productTypeDescription.value = description;
+        productTypeStatus.value = status || 'Active';
         modalError.style.display = 'none';
         productTypeModal.classList.add('show');
     }
@@ -175,6 +182,7 @@ window.productTypeModule = (function () {
         const token = getToken();
         const name = document.getElementById('productTypeName').value.trim();
         const description = document.getElementById('productTypeDescription').value.trim();
+        const status = document.getElementById('productTypeStatus').value;
 
         if (!name) {
             document.getElementById('modalError').innerText = 'Name is required';
@@ -191,7 +199,7 @@ window.productTypeModule = (function () {
                 'Content-Type': 'application/json',
                 authorization: token
             },
-            body: JSON.stringify({ name, description })
+            body: JSON.stringify({ name, description, status })
         });
         const data = await res.json();
         if (data.success) {
@@ -220,6 +228,25 @@ window.productTypeModule = (function () {
         }
     }
 
+    async function toggleProductTypeStatus(id) {
+        const token = getToken();
+        try {
+            const res = await fetch(`/api/producttypes/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', authorization: token },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (data.success) {
+                loadProductTypes();
+            } else {
+                adminApp.showToast('Error updating product type status: ' + data.message, 'error');
+            }
+        } catch (err) {
+            adminApp.showToast('Error: ' + err.message, 'error');
+        }
+    }
+
     function escapeHtml(str) { return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;').replace(/"/g, '&quot;'); }
 
     function init() {
@@ -230,6 +257,7 @@ window.productTypeModule = (function () {
         window.closeProductTypeModal = closeModal;
         window.saveProductType = saveProductType;
         window.deleteProductType = deleteProductType;
+        window.toggleProductTypeStatus = toggleProductTypeStatus;
         window.changePage = changePage;
         window.goToPage = goToPage;
         document.getElementById('entriesPerPage').addEventListener('change', () => { currentPage = 1; renderTable(); });

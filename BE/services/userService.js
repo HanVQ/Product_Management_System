@@ -2,7 +2,7 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
 class UserService {
-    async listUsers() {
+    async getListUsers() {
         try {
             return await User.find().select('-password');
         } catch (error) {
@@ -24,7 +24,7 @@ class UserService {
 
     async createUser(userData) {
         try {
-            const { name, email, password, role } = userData;
+            const { name, email, password, role, emailVerified} = userData;
             
             if (!name || !email) {
                 throw new Error('Name and email are required');
@@ -44,7 +44,8 @@ class UserService {
                 name,
                 email: email.toLowerCase(),
                 password: hashed,
-                role: role || 'user'
+                role: role || 'user',
+                emailVerified: emailVerified || true
             });
 
             await newUser.save();
@@ -88,7 +89,8 @@ class UserService {
                     name: u.name,
                     email: emailLower,
                     password: hashed,
-                    role: u.role || 'user'
+                    role: u.role || 'user',
+                    emailVerified: u.emailVerified || true
                 });
             }
 
@@ -144,6 +146,20 @@ class UserService {
             return user;
         } catch (error) {
             throw new Error(`Error deleting user: ${error.message}`);
+        }
+    }
+
+    async toggleUserStatus(id) {
+        try {
+            const user = await User.findById(id);
+            if (!user) {
+                throw new Error('User not found');
+            }
+            user.status = user.status === 'Active' ? 'Inactive' : 'Active';
+            await user.save();
+            return user;
+        } catch (error) {
+            throw new Error(`Error toggling user status: ${error.message}`);
         }
     }
 }

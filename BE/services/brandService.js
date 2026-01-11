@@ -1,7 +1,7 @@
 const Brand = require('../models/Brand');
 
 class BrandService {
-    async listBrands() {
+    async getListBrands() {
         try {
             return await Brand.find();
         } catch (error) {
@@ -109,6 +109,20 @@ class BrandService {
             return brand;
         } catch (error) {
             throw new Error(`Error deleting brand: ${error.message}`);
+        }
+    }
+
+    async toggleBrandStatus(id) {
+        try {
+            const brand = await Brand.findById(id);
+            if (!brand) {
+                throw new Error('Brand not found');
+            }
+            brand.status = brand.status === 'Active' ? 'Inactive' : 'Active';
+            await brand.save();
+            return brand;
+        } catch (error) {
+            throw new Error(`Error toggling brand status: ${error.message}`);
         }
     }
 }

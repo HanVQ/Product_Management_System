@@ -48,8 +48,11 @@
                 <label>Items:</label>
                 <div id="orderItems">
                     <div class="order-item">
-                        <select class="item-product" required>
+                        <select class="item-product" required onchange="onProductSelected(this)">
                             <option value="">Select Product</option>
+                        </select>
+                        <select class="item-variant" required onchange="calculateTotal()" style="display:none;">
+                            <option value="">Select Variant</option>
                         </select>
                         <input type="number" class="item-quantity" min="1" placeholder="Qty" required>
                         <button type="button" class="btn btn-small" onclick="removeItem(this)">Remove</button>

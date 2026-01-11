@@ -27,6 +27,11 @@ const customerSchema = new mongoose.Schema({
         type: String,
         trim: true,
     },
+    status: {
+        type: String,
+        enum: ['Active', 'Inactive'],
+        default: 'Active'
+    },
     totalOrders: {
         type: Number, default: 0
     },

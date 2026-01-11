@@ -34,16 +34,19 @@ window.customerModule = (function () {
         const end = start + perPage;
         const pageData = filteredCustomers.slice(start, end);
 
-        let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th style="width:140px">Action</th></tr></thead><tbody>';
+        let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th>Status</th><th style="width:140px">Action</th></tr></thead><tbody>';
         pageData.forEach((c, idx) => {
+            const statusClass = c.status === 'Active' ? 'status-active' : 'status-inactive';
+            const statusText = c.status || 'Active';
             html += `<tr>
         <td>${start + idx + 1}</td>
         <td>${c.name || ''}</td>
         <td>${c.email || ''}</td>
         <td>${c.phone || ''}</td>
         <td>${c.address || ''}</td>
+        <td><span class="status-badge ${statusClass}" onclick="toggleCustomerStatus('${c._id}')" style="cursor:pointer;">${statusText}</span></td>
         <td class="action"><div class="action-btns">
-          <button class="btn btn-warning" onclick="editCustomerModal('${c._id}', '${escapeHtml(c.name || '')}', '${escapeHtml(c.email || '')}', '${escapeHtml(c.phone || '')}', '${escapeHtml(c.address || '')}')">Edit</button>
+          <button class="btn btn-warning" onclick="editCustomerModal('${c._id}', '${escapeHtml(c.name || '')}', '${escapeHtml(c.email || '')}', '${escapeHtml(c.phone || '')}', '${escapeHtml(c.address || '')}', '${c.status}')">Edit</button>
           <button class="btn btn-danger" onclick="deleteCustomer('${c._id}')">Delete</button>
         </div></td>
       </tr>`;
@@ -133,6 +136,7 @@ window.customerModule = (function () {
         const customerEmail = document.getElementById('customerEmail');
         const customerPhone = document.getElementById('customerPhone');
         const customerAddress = document.getElementById('customerAddress');
+        const customerStatus = document.getElementById('customerStatus');
         const modalError = document.getElementById('modalError');
         const customerModal = document.getElementById('customerModal');
 
@@ -146,17 +150,19 @@ window.customerModule = (function () {
         customerEmail.value = '';
         customerPhone.value = '';
         customerAddress.value = '';
+        customerStatus.value = 'Active';
         modalError.style.display = 'none';
         customerModal.classList.add('show');
     }
 
-    function openEditModal(id, name, email, phone, address) {
+    function openEditModal(id, name, email, phone, address, status) {
         editingCustomerId = id;
         const modalTitle = document.getElementById('modalTitle');
         const customerName = document.getElementById('customerName');
         const customerEmail = document.getElementById('customerEmail');
         const customerPhone = document.getElementById('customerPhone');
         const customerAddress = document.getElementById('customerAddress');
+        const customerStatus = document.getElementById('customerStatus');
         const modalError = document.getElementById('modalError');
         const customerModal = document.getElementById('customerModal');
 
@@ -170,6 +176,7 @@ window.customerModule = (function () {
         customerEmail.value = email;
         customerPhone.value = phone;
         customerAddress.value = address;
+        customerStatus.value = status || 'Active';
         modalError.style.display = 'none';
         customerModal.classList.add('show');
     }
@@ -188,6 +195,7 @@ window.customerModule = (function () {
         const email = document.getElementById('customerEmail').value.trim();
         const phone = document.getElementById('customerPhone').value.trim();
         const address = document.getElementById('customerAddress').value.trim();
+        const status = document.getElementById('customerStatus').value;
 
         if (!name || !email) {
             document.getElementById('modalError').innerText = 'Name and email are required';
@@ -204,7 +212,7 @@ window.customerModule = (function () {
                 'Content-Type': 'application/json',
                 authorization: token
             },
-            body: JSON.stringify({ name, email, phone, address })
+            body: JSON.stringify({ name, email, phone, address, status })
         });
         const data = await res.json();
         if (data.success) {
@@ -235,6 +243,25 @@ window.customerModule = (function () {
         }
     }
 
+    async function toggleCustomerStatus(id) {
+        const token = getToken();
+        try {
+            const res = await fetch(`/api/customers/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', authorization: token },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (data.success) {
+                loadCustomers();
+            } else {
+                adminApp.showToast('Error updating customer status: ' + data.message, 'error');
+            }
+        } catch (err) {
+            adminApp.showToast('Error: ' + err.message, 'error');
+        }
+    }
+
     function escapeHtml(str) { return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;').replace(/"/g, '&quot;'); }
 
     function init() {
@@ -244,6 +271,7 @@ window.customerModule = (function () {
         window.closeCustomerModal = closeModal;
         window.saveCustomer = saveCustomer;
         window.deleteCustomer = deleteCustomer;
+        window.toggleCustomerStatus = toggleCustomerStatus;
         window.changePage = changePage;
         window.goToPage = goToPage;
         document.getElementById('entriesPerPage').addEventListener('change', () => { currentPage = 1; renderTable(); });

@@ -1,15 +1,11 @@
 const mongoose = require('mongoose');
 
-const brandSchema = new mongoose.Schema({
+const sizeSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
         trim: true,
-        unique: true
-    },
-    description: {
-        type: String,
-        trim: true,
+        unique: true,
     },
     status: {
         type: String,
@@ -18,4 +14,4 @@ const brandSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Brand', brandSchema);
+module.exports = mongoose.model('Size', sizeSchema);

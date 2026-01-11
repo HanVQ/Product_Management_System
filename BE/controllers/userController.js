@@ -2,9 +2,9 @@ const userService = require('../services/userService');
 
 class UserController {
     // List users (admin)
-    async listUser(req, res) {
+    async getListUser(req, res) {
         try {
-            const users = await userService.listUsers();
+            const users = await userService.getListUsers();
             res.json({ success: true, users });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });
@@ -61,6 +61,16 @@ class UserController {
             res.json({ success: true, message: 'User deleted' });
         } catch (err) {
             res.status(404).json({ success: false, message: err.message });
+        }
+    }
+
+    async toggleUserStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const user = await userService.toggleUserStatus(id);
+            res.json({ success: true, user });
+        } catch (err) {
+            res.status(400).json({ success: false, message: err.message });
         }
     }
 }

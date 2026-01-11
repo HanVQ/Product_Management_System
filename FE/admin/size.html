@@ -1,0 +1,39 @@
+<div class="container" id="size-page">
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3>Sizes</h3>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="openSizeModal()">Add Size</button>
+            </div>
+        </div>
+
+        <div id="sizeResults"></div>
+    </div>
+</div>
+
+<!-- Add/Edit Size Modal -->
+<div class="modal" id="sizeModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="sizeModalTitle">Add Size</h2>
+        </div>
+        <div id="sizeModalError" class="error" style="display:none;"></div>
+        <form onsubmit="saveSize(event)">
+            <div class="form-group">
+                <label>Name:</label>
+                <input type="text" id="sizeName" required>
+            </div>
+            <div class="form-group">
+                <label>Status:</label>
+                <select id="sizeStatus" required>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeSizeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>

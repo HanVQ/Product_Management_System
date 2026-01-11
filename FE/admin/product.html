@@ -28,10 +28,11 @@
                 </div>
             </div>
             <!-- Filter panel (hidden by default) -->
-            <div id="filterPanel" style="display:none;margin-top:8px;padding:8px;border:1px solid #eee;background:#fff;border-radius:4px;">
+            <div id="filterPanel"
+                style="display:none;margin-top:8px;padding:8px;border:1px solid #eee;background:#fff;border-radius:4px;">
                 <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
                     <div>
-                    <label>Product Type</label>
+                        <label>Product Type</label>
                         <select id="filterProductType">
                             <option value="">All</option>
                         </select>
@@ -42,15 +43,6 @@
                             <option value="">All</option>
                         </select>
                     </div>
-                    <div>
-                        <label>Stock Status</label>
-                        <select id="filterStockStatus">
-                            <option value="">All</option>
-                            <option value="in stock">In stock</option>
-                            <option value="low stock">Low stock</option>
-                            <option value="out of stock">Out of stock</option>
-                        </select>
-                    </div>
                     <div style="display:flex;gap:8px;align-items:flex-end;margin-left:8px">
                         <button id="applyFiltersBtn" class="btn btn-primary">Apply</button>
                         <button id="clearFiltersBtn" class="btn btn-secondary">Clear</button>
@@ -58,7 +50,8 @@
                 </div>
             </div>
             <!-- Sort panel (hidden by default) -->
-            <div id="sortPanel" style="display:none;margin-top:8px;padding:8px;border:1px solid #eee;background:#fff;border-radius:4px;">
+            <div id="sortPanel"
+                style="display:none;margin-top:8px;padding:8px;border:1px solid #eee;background:#fff;border-radius:4px;">
                 <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
                     <div>
                         <label>Sort</label>
@@ -69,11 +62,9 @@
                             <option value="price:desc">Price (High → Low)</option>
                             <option value="brand:asc">Brand (A–Z)</option>
                             <option value="brand:desc">Brand (Z–A)</option>
-                            <option value="stock:asc">Stock (Low → High)</option>
-                            <option value="stock:desc">Stock (High → Low)</option>
                         </select>
                     </div>
-                    
+
                     <div style="display:flex;gap:8px;align-items:flex-end;margin-left:8px">
                         <button id="applySortBtn" class="btn btn-primary">Apply</button>
                         <button id="clearSortBtn" class="btn btn-secondary">Clear</button>
@@ -110,11 +101,6 @@
                 <input type="number" id="productPrice" step="0.01" min="0" required>
             </div>
             <div class="form-group">
-                <label>Stock:</label>
-                <input type="number" id="productStock" min="0" required>
-                <span id="productStockStatus" class="badge" style="margin-left:8px;"></span>
-            </div>
-            <div class="form-group">
                 <label>Product Type:</label>
                 <select id="productCategory" required>
                     <!-- Options populated dynamically -->
@@ -129,6 +115,57 @@
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Variants Modal -->
+<div class="modal" id="variantsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="variantsModalTitle">Manage Variants</h2>
+        </div>
+        <div id="variantsError" class="error" style="display:none;"></div>
+        <div style="margin-bottom:12px">
+            <strong>Product:</strong> <span id="variantsProductName"></span>
+            <button class="btn btn-secondary" style="float:right" onclick="closeVariantsModal()">Close</button>
+        </div>
+
+        <div id="variantsList" style="max-height:300px;overflow:auto;margin-bottom:12px"></div>
+
+        <form id="variantForm" onsubmit="saveVariant(event)">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <div style="flex:1">
+                    <label>Size</label>
+                    <select id="variantSize">
+                        <option value="">(none)</option>
+                    </select>
+                </div>
+                <div style="flex:1">
+                    <label>Color</label>
+                    <select id="variantColor">
+                        <option value="">(none)</option>
+                    </select>
+                </div>
+                <div style="flex:1">
+                    <label>Price</label>
+                    <input type="number" id="variantPrice" min="0" step="0.01">
+                </div>
+                <div style="flex:1">
+                    <label>Stock</label>
+                    <input type="number" id="variantStock" min="0">
+                </div>
+                <div style="flex:1">
+                    <label>Status</label>
+                    <select id="variantStatus" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                <div style="flex:0 0 100px;display:flex;align-items:flex-end">
+                    <button class="btn btn-primary" type="submit">Add Variant</button>
+                </div>
             </div>
         </form>
     </div>

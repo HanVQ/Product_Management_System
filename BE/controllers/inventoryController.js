@@ -2,9 +2,9 @@ const inventoryService = require('../services/inventoryService');
 
 class InventoryController {
     // List transactions
-    async listInventory(req, res) {
+    async getListInventory(req, res) {
         try {
-            const transactions = await inventoryService.listTransactions();
+            const transactions = await inventoryService.getListTransactions();
             res.json({ success: true, transactions });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });

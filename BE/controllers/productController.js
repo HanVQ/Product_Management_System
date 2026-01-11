@@ -2,7 +2,7 @@ const productService = require('../services/productService');
 
 class ProductController {
     // List products with filtering, sorting, and pagination
-    async listProduct(req, res) {
+    async getListProduct(req, res) {
         try {
             const filters = {
                 search: req.query.search || '',
@@ -14,7 +14,7 @@ class ProductController {
                 page: req.query.page || 1,
                 limit: req.query.limit || 10
             };
-            const result = await productService.listProducts(filters);
+            const result = await productService.getListProducts(filters);
             res.json({ success: true, ...result });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });
@@ -63,7 +63,19 @@ class ProductController {
         }
     }
 
-    // Delete product
+    // Toggle product status (Active/Inactive)
+    async toggleProductStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const { isActive } = req.body;
+            const product = await productService.toggleProductStatus(id, isActive);
+            res.json({ success: true, product });
+        } catch (err) {
+            res.status(400).json({ success: false, message: err.message });
+        }
+    }
+
+    // Delete product (soft delete)
     async removeProduct(req, res) {
         try {
             const { id } = req.params;

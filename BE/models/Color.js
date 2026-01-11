@@ -1,15 +1,17 @@
 const mongoose = require('mongoose');
 
-const brandSchema = new mongoose.Schema({
+const colorSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
         trim: true,
-        unique: true
+        unique: true,
     },
-    description: {
+    hex: {
         type: String,
-        trim: true,
+        required: true,
+        uppercase: true,
+        match: /^#([0-9A-F]{6}|[0-9A-F]{3})$/,
     },
     status: {
         type: String,
@@ -18,4 +20,4 @@ const brandSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Brand', brandSchema);
+module.exports = mongoose.model('Color', colorSchema);

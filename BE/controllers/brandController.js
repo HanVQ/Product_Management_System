@@ -2,9 +2,9 @@ const brandService = require('../services/brandService');
 
 class BrandController {
     // List brands
-    async listBrand(req, res) {
+    async getListBrand(req, res) {
         try {
-            const brands = await brandService.listBrands();
+            const brands = await brandService.getListBrands();
             res.json({ success: true, data: brands });
         } catch (error) {
             res.status(500).json({ message: 'Error retrieving brands', error: error.message });
@@ -61,6 +61,17 @@ class BrandController {
             res.json({ success: true, data: brand });
         } catch (error) {
             res.status(404).json({ message: 'Error deleting brand', error: error.message });
+        }
+    }
+
+    // Toggle brand status
+    async toggleBrandStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const brand = await brandService.toggleBrandStatus(id);
+            res.json({ success: true, brand });
+        } catch (err) {
+            res.status(400).json({ success: false, message: err.message });
         }
     }
 }

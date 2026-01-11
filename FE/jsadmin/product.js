@@ -25,6 +25,49 @@ window.productModule = (function () {
         }
     }
 
+    // Load sizes and colors for variant management
+    // Load sizes and colors for variant management
+    let allSizes = [];
+    let allColors = [];
+    let editingVariantId = null;
+    async function loadSizesAndColors() {
+        const token = getToken();
+        try {
+            const [sRes, cRes] = await Promise.all([
+                fetch('/api/sizes', { headers: { authorization: token } }),
+                fetch('/api/colors', { headers: { authorization: token } })
+            ]);
+            const sData = await sRes.json();
+            const cData = await cRes.json();
+            allSizes = sData.sizes || [];
+            allColors = cData.colors || [];
+            populateSizeColorDropdowns();
+        } catch (err) {
+            console.warn('Could not load sizes/colors:', err.message);
+        }
+    }
+
+    function populateSizeColorDropdowns() {
+        const sizeSel = document.getElementById('variantSize');
+        const colorSel = document.getElementById('variantColor');
+        if (sizeSel) {
+            const cur = sizeSel.value;
+            sizeSel.innerHTML = '<option value="">(none)</option>';
+            allSizes.forEach(s => {
+                const o = document.createElement('option'); o.value = s._id; o.textContent = s.name; sizeSel.appendChild(o);
+            });
+            if (cur) sizeSel.value = cur;
+        }
+        if (colorSel) {
+            const curc = colorSel.value;
+            colorSel.innerHTML = '<option value="">(none)</option>';
+            allColors.forEach(c => {
+                const o = document.createElement('option'); o.value = c._id; o.textContent = c.name; colorSel.appendChild(o);
+            });
+            if (curc) colorSel.value = curc;
+        }
+    }
+
     async function loadBrands() {
         const token = getToken();
         try {
@@ -114,8 +157,6 @@ window.productModule = (function () {
         const searchQuery = document.getElementById('searchInput').value || '';
         const filterType = (document.getElementById('filterProductType') && document.getElementById('filterProductType').value) || '';
         const filterBrand = (document.getElementById('filterBrand') && document.getElementById('filterBrand').value) || '';
-        const filterStock = (document.getElementById('filterStockStatus') && document.getElementById('filterStockStatus').value) || '';
-
         // Build query string
         const params = new URLSearchParams();
         if (searchQuery) {
@@ -126,9 +167,6 @@ window.productModule = (function () {
         }
         if (filterBrand) {
             params.append('brand', filterBrand);
-        }
-        if (filterStock) {
-            params.append('stockStatus', filterStock);
         }
         if (currentSortField) {
             params.append('sortField', currentSortField);
@@ -147,14 +185,14 @@ window.productModule = (function () {
 
         allProducts = data.products || [];
         // attach product type and brand name for rendering
-        // attach product type and brand name for rendering
+        // calculate total stock from variants
         allProducts.forEach(p => {
             const pt = allProductTypes.find(t => String(t._id) === String(p.productType));
             p._productTypeName = pt ? pt.name : '';
             const b = allBrands.find(x => String(x._id) === String(p.brand || p.brandId || ''));
             p._brandName = b ? b.name : '';
-            p._stockStatus = computeStockStatus(p.stock);
-            p._stockStatus = computeStockStatus(p.stock);
+            // Display total stock from variants (totalStock field from backend)
+            p._displayStock = (typeof p.totalStock !== 'undefined' && p.totalStock !== null) ? p.totalStock : 0;
         });
 
         filteredProducts = [...allProducts];
@@ -171,30 +209,30 @@ window.productModule = (function () {
         // Data is already paginated from backend, no need to slice
         const pageData = filteredProducts;
 
-        let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Description</th><th>Price</th><th>Stock</th><th>Stock Status</th><th>Brand</th><th>Product Type</th><th style="width:140px">Action</th></tr></thead><tbody>';
+        let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Description</th><th>Price</th><th>Stock</th><th>Brand</th><th>Product Type</th><th>Status</th><th style="width:300px">Action</th></tr></thead><tbody>';
         pageData.forEach((p, idx) => {
             const productTypeName = p._productTypeName || (allProductTypes.find(pt => String(pt._id) === String(p.productType)) || {}).name || '';
             const brandName = p._brandName || (allBrands.find(br => String(br._id) === String(p.brand || p.brandId || '')) || {}).name || '';
-            const stockStatus = p._stockStatus || computeStockStatus(p.stock);
-            const statusClass = stockStatus.replace(/\s+/g, '-');
             const rowNum = (pagination ? (pagination.page - 1) * pagination.limit : currentPage - 1 * perPage) + idx + 1;
+            const statusClass = p.status === 'Active' ? 'status-active' : 'status-inactive';
+            const statusText = p.status || 'Active';
             html += `<tr>
                 <td>${rowNum}</td>
                 <td>${p.name || ''}</td>
                 <td>${(p.description || '').substring(0, 50)}${(p.description || '').length > 50 ? '...' : ''}</td>
                 <td>${p.price.toLocaleString('vi-VN')} ₫</td>
-                <td>${p.stock || 0}</td>
-                <td><span class="badge status-${statusClass}">${stockStatus}</span></td>
+                <td>${p._displayStock || 0}</td>
                 <td>${brandName}</td>
                 <td>${productTypeName}</td>
+                <td><span class="status-badge ${statusClass}" onclick="toggleProductStatus('${p._id}')" style="cursor:pointer;">${statusText}</span></td>
                 <td class="action"><div class="action-btns">
-                    <button class="btn btn-warning" onclick="editProductModal('${p._id}', '${escapeHtml(p.name || '')}', '${escapeHtml(p.description || '')}', '${p.price || 0}', '${p.stock || 0}', '${p.productType || ''}', '${p.brand || p.brandId || ''}')">Edit</button>
-                    <button class="btn btn-warning" onclick="editProductModal('${p._id}', '${escapeHtml(p.name || '')}', '${escapeHtml(p.description || '')}', '${p.price || 0}', '${p.stock || 0}', '${p.productType || ''}', '${p.brand || p.brandId || ''}')">Edit</button>
+                    <button class="btn btn-warning" onclick="editProductModal('${p._id}', '${escapeHtml(p.name || '')}', '${escapeHtml(p.description || '')}', '${p.price || 0}', '${p.productType || ''}', '${p.brand || p.brandId || ''}')">Edit</button>
+                    <button class="btn btn-secondary" onclick="openVariantsModal('${p._id}', '${escapeHtml(p.name || '')}')">Variants</button>
                     <button class="btn btn-danger" onclick="deleteProduct('${p._id}')">Delete</button>
                 </div></td>
             </tr>`;
         });
-        
+
         html += '</tbody></table></div>';
         document.getElementById('results').innerHTML = html;
         renderPagination(pagination || { page: currentPage, limit: perPage, total: allProducts.length, pages: Math.ceil(allProducts.length / perPage) });
@@ -202,6 +240,167 @@ window.productModule = (function () {
         const start = (pagination ? (pagination.page - 1) * pagination.limit : (currentPage - 1) * perPage) + 1;
         const end = Math.min(start + pageData.length - 1, pagination ? pagination.total : allProducts.length);
         document.getElementById('infoText').innerText = `Showing ${start} to ${end} of ${pagination ? pagination.total : allProducts.length} entries`;
+    }
+
+    // Variants management
+    let currentVariantsProductId = null;
+    async function openVariantsModal(productId, productName) {
+        currentVariantsProductId = productId;
+        document.getElementById('variantsProductName').innerText = productName || '';
+        document.getElementById('variantsError').style.display = 'none';
+        document.getElementById('variantPrice').value = '';
+        document.getElementById('variantStock').value = '';
+        document.getElementById('variantStatus').value = 'Active';
+        await loadSizesAndColors();
+        await loadVariantsForProduct(productId);
+        document.getElementById('variantsModal').classList.add('show');
+    }
+
+    function closeVariantsModal() {
+        document.getElementById('variantsModal').classList.remove('show');
+        currentVariantsProductId = null;
+        editingVariantId = null;
+        document.getElementById('variantForm').reset();
+        document.querySelector('#variantForm button[type="submit"]').innerText = 'Add Variant';
+    }
+
+    async function loadVariantsForProduct(productId) {
+        const token = getToken();
+        try {
+            const res = await fetch(`/api/productvariants?product=${productId}`, { headers: { authorization: token } });
+            const data = await res.json();
+            const list = data.variants || [];
+            renderVariants(list);
+        } catch (err) {
+            document.getElementById('variantsList').innerText = 'Error loading variants';
+        }
+    }
+
+    function renderVariants(list) {
+        const cont = document.getElementById('variantsList');
+        if (!cont) return;
+        if (!list || list.length === 0) {
+            cont.innerHTML = '<div style="text-align:center;padding:20px;color:#666">No variants found for this product.</div>';
+            return;
+        }
+        let html = '<table style="width:100%;border-collapse:collapse;font-size:15px"><thead><tr style="background:#f0f0f0;font-weight:600"><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">SKU</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Size</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Color</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Price</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Stock</th><th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Status</th><th style="padding:12px;text-align:center;border-bottom:2px solid #ddd">Action</th></tr></thead><tbody>';
+        list.forEach(v => {
+            const sizeName = (v.size && v.size.name) || (allSizes.find(s => s._id === (v.size || '')) || {}).name || '—';
+            const colorName = (v.color && v.color.name) || (allColors.find(c => c._id === (v.color || '')) || {}).name || '—';
+            const statusClass = v.status === 'Active' ? 'status-active' : 'status-inactive';
+            const statusText = v.status || 'Active';
+            html += `<tr style="border-bottom:1px solid #eee"><td style="padding:12px">${v.sku || '—'}</td><td style="padding:12px">${sizeName}</td><td style="padding:12px">${colorName}</td><td style="padding:12px">${(v.price || 0).toLocaleString('vi-VN')} ₫</td><td style="padding:12px">${v.stock || 0}</td><td style="padding:12px"><span class="status-badge ${statusClass}" onclick="toggleVariantStatus('${v._id}')" style="cursor:pointer;">${statusText}</span></td><td style="padding:12px;text-align:center"><button class="btn btn-warning" onclick="editVariant('${v._id}')" style="padding:6px 12px;margin-right:6px;font-size:13px">Edit</button> <button class="btn btn-danger" onclick="deleteVariant('${v._id}')" style="padding:6px 12px;font-size:13px">Delete</button></td></tr>`;
+        });
+        html += '</tbody></table>';
+        cont.innerHTML = html;
+    }
+
+    async function editVariant(id) {
+        const token = getToken();
+        try {
+            const res = await fetch(`/api/productvariants/${id}`, { headers: { authorization: token } });
+            const data = await res.json();
+            if (data.variant) {
+                const v = data.variant;
+                editingVariantId = id;
+                document.getElementById('variantSize').value = v.size ? (v.size._id || v.size) : '';
+                document.getElementById('variantColor').value = v.color ? (v.color._id || v.color) : '';
+                document.getElementById('variantPrice').value = v.price || '';
+                document.getElementById('variantStock').value = v.stock || '';
+                document.getElementById('variantStatus').value = v.status || 'Active';
+                document.querySelector('#variantForm button[type="submit"]').innerText = 'Update Variant';
+                document.getElementById('variantsError').style.display = 'none';
+            }
+        } catch (err) {
+            document.getElementById('variantsError').innerText = 'Error loading variant: ' + err.message;
+            document.getElementById('variantsError').style.display = 'block';
+        }
+    }
+
+    async function saveVariant(e) {
+        e.preventDefault();
+        if (!currentVariantsProductId) return;
+        const token = getToken();
+        const size = document.getElementById('variantSize').value || null;
+        const color = document.getElementById('variantColor').value || null;
+        const price = document.getElementById('variantPrice').value ? parseFloat(document.getElementById('variantPrice').value) : undefined;
+        const stock = document.getElementById('variantStock').value ? parseInt(document.getElementById('variantStock').value) : undefined;
+        const status = document.getElementById('variantStatus').value;
+
+        try {
+            const method = editingVariantId ? 'PUT' : 'POST';
+            const url = editingVariantId ? `/api/productvariants/${editingVariantId}` : '/api/productvariants';
+            const body = editingVariantId
+                ? { size: size || undefined, color: color || undefined, price, stock, status }
+                : { product: currentVariantsProductId, size: size || undefined, color: color || undefined, price, stock, status };
+
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json', authorization: token },
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('variantPrice').value = '';
+                document.getElementById('variantStock').value = '';
+                document.getElementById('variantStatus').value = 'Active';
+                document.getElementById('variantSize').value = '';
+                document.getElementById('variantColor').value = '';
+                editingVariantId = null;
+                document.querySelector('#variantForm button[type="submit"]').innerText = 'Add Variant';
+                document.querySelector('#variantForm button[type="submit"]').innerText = 'Edit Variant';
+                await loadVariantsForProduct(currentVariantsProductId);
+                // Reload products to update stock display
+                await loadProducts();
+            } else {
+                document.getElementById('variantsError').innerText = data.message || 'Error saving variant';
+                document.getElementById('variantsError').style.display = 'block';
+            }
+        } catch (err) {
+            document.getElementById('variantsError').innerText = err.message;
+            document.getElementById('variantsError').style.display = 'block';
+        }
+    }
+
+    async function deleteVariant(id) {
+        if (!confirm('Delete variant?')) return;
+        const token = getToken();
+        try {
+            const res = await fetch(`/api/productvariants/${id}`, { method: 'DELETE', headers: { authorization: token } });
+            const data = await res.json();
+            if (data.success) {
+                if (currentVariantsProductId) {
+                    await loadVariantsForProduct(currentVariantsProductId);
+                    await loadProducts();
+                }
+            } else {
+                adminApp.showToast('Error deleting variant: ' + data.message, 'error');
+            }
+        } catch (err) {
+            adminApp.showToast('Error deleting variant: ' + err.message, 'error');
+        }
+    }
+
+    async function toggleVariantStatus(id) {
+        const token = getToken();
+        try {
+            const res = await fetch(`/api/productvariants/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', authorization: token },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (currentVariantsProductId) {
+                    await loadVariantsForProduct(currentVariantsProductId);
+                    await loadProducts();
+                }
+            } else {
+                adminApp.showToast('Error updating variant status: ' + data.message, 'error');
+            }
+        } catch (err) {
+            adminApp.showToast('Error: ' + err.message, 'error');
+        }
     }
 
     function sortProducts(arr) {
@@ -328,10 +527,6 @@ window.productModule = (function () {
         if (f2) {
             f2.value = '';
         }
-        const f3 = document.getElementById('filterStockStatus');
-        if (f3) {
-            f3.value = '';
-        }
         document.getElementById('searchInput').value = '';
         currentPage = 1;
         loadProducts();
@@ -343,13 +538,12 @@ window.productModule = (function () {
         const productName = document.getElementById('productName');
         const productDescription = document.getElementById('productDescription');
         const productPrice = document.getElementById('productPrice');
-        const productStock = document.getElementById('productStock');
         const productCategory = document.getElementById('productCategory');
         const productBrand = document.getElementById('productBrand');
         const modalError = document.getElementById('modalError');
         const productModal = document.getElementById('productModal');
 
-        if (!modalTitle || !productName || !productDescription || !productPrice || !productStock || !productCategory || !modalError || !productModal) {
+        if (!modalTitle || !productName || !productDescription || !productPrice || !productCategory || !modalError || !productModal) {
             console.error('Modal elements not found. Make sure you are on the Products page.');
             return;
         }
@@ -358,36 +552,26 @@ window.productModule = (function () {
         productName.value = '';
         productDescription.value = '';
         productPrice.value = '';
-        productStock.value = '';
         productCategory.value = '';
         if (productBrand) {
             productBrand.value = '';
-        }   
+        }
         modalError.style.display = 'none';
-        // set initial stock status badge and listen to changes
-        const stockStatusSpan = document.getElementById('productStockStatus');
-        if (stockStatusSpan) {
-            stockStatusSpan.innerText = computeStockStatus(0);
-        }
-        if (productStock) {
-            productStock.addEventListener('input', onStockInputChange);
-        }
         productModal.classList.add('show');
     }
 
-    function openEditModal(id, name, description, price, stock, productType, brand) {
+    function openEditModal(id, name, description, price, productType, brand) {
         editingProductId = id;
         const modalTitle = document.getElementById('modalTitle');
         const productName = document.getElementById('productName');
         const productDescription = document.getElementById('productDescription');
         const productPrice = document.getElementById('productPrice');
-        const productStock = document.getElementById('productStock');
         const productCategory = document.getElementById('productCategory');
         const productBrand = document.getElementById('productBrand');
         const modalError = document.getElementById('modalError');
         const productModal = document.getElementById('productModal');
 
-        if (!modalTitle || !productName || !productDescription || !productPrice || !productStock || !productCategory || !modalError || !productModal) {
+        if (!modalTitle || !productName || !productDescription || !productPrice || !productCategory || !modalError || !productModal) {
             console.error('Modal elements not found. Make sure you are on the Products page.');
             return;
         }
@@ -396,19 +580,9 @@ window.productModule = (function () {
         productName.value = name;
         productDescription.value = description;
         productPrice.value = price;
-        productStock.value = stock;
         productCategory.value = productType;
         if (productBrand) productBrand.value = brand || '';
         modalError.style.display = 'none';
-        // update stock status badge and listen to stock changes
-        const stockStatusSpan = document.getElementById('productStockStatus');
-        if (stockStatusSpan) {
-            stockStatusSpan.innerText = computeStockStatus(parseInt(stock || 0));
-        }
-        if (productStock) {
-            productStock.removeEventListener('input', onStockInputChange);
-            productStock.addEventListener('input', onStockInputChange);
-        }
         productModal.classList.add('show');
     }
 
@@ -419,21 +593,12 @@ window.productModule = (function () {
         }
     }
 
-    function onStockInputChange(e) {
-        const v = parseInt(e.target.value || 0);
-        const span = document.getElementById('productStockStatus');
-        if (span) {
-            span.innerText = computeStockStatus(v);
-        }
-    }
-
     async function saveProduct(event) {
         event.preventDefault();
         const token = getToken();
         const name = document.getElementById('productName').value.trim();
         const description = document.getElementById('productDescription').value.trim();
         const price = parseFloat(document.getElementById('productPrice').value);
-        const stock = parseInt(document.getElementById('productStock').value);
         const productType = document.getElementById('productCategory').value;
         const brand = (document.getElementById('productBrand') && document.getElementById('productBrand').value) || '';
 
@@ -452,7 +617,7 @@ window.productModule = (function () {
                 'Content-Type': 'application/json',
                 authorization: token
             },
-            body: JSON.stringify({ name, description, price, stock, productType, brand })
+            body: JSON.stringify({ name, description, price, productType, brand })
         });
         const data = await res.json();
         if (data.success) {
@@ -465,20 +630,28 @@ window.productModule = (function () {
         }
     }
 
-    // Helper: compute stock status (mirror of backend logic)
-    function computeStockStatus(stock) {
-        const s = (typeof stock === 'number' && !isNaN(stock)) ? stock : parseInt(stock) || 0;
-        if (s === 0) {
-            return 'out of stock';
+    async function toggleProductStatus(id) {
+        const token = getToken();
+        try {
+            const res = await fetch(`/api/products/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', authorization: token },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (data.success) {
+                loadProducts();
+                adminApp.showToast(`Product status changed to ${data.product.status}`);
+            } else {
+                adminApp.showToast('Error updating product status: ' + data.message, 'error');
+            }
+        } catch (err) {
+            adminApp.showToast('Error: ' + err.message, 'error');
         }
-        if (s <= 5) {
-            return 'low stock';
-        }
-        return 'in stock';
     }
 
     async function deleteProduct(id) {
-        if (!confirm('Are you sure you want to delete this product?')) return;
+        if (!confirm('Are you sure you want to permanently delete this product? This action cannot be undone.')) return;
         const token = getToken();
         const res = await fetch(`/api/products/${id}`, {
             method: 'DELETE',
@@ -501,8 +674,15 @@ window.productModule = (function () {
         // Attach functions to window for global access
         window.openProductModal = openAddModal;
         window.editProductModal = openEditModal;
+        window.openVariantsModal = openVariantsModal;
+        window.closeVariantsModal = closeVariantsModal;
+        window.saveVariant = saveVariant;
+        window.editVariant = editVariant;
+        window.deleteVariant = deleteVariant;
+        window.toggleVariantStatus = toggleVariantStatus;
         window.closeProductModal = closeModal;
         window.saveProduct = saveProduct;
+        window.toggleProductStatus = toggleProductStatus;
         window.deleteProduct = deleteProduct;
         window.changePage = changePage;
         window.goToPage = goToPage;

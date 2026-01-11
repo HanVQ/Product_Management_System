@@ -1,7 +1,7 @@
 const Customer = require('../models/Customer');
 
 class CustomerService {
-    async listCustomers() {
+    async getListCustomers() {
         try {
             return await Customer.find().sort({ createdAt: -1 });
         } catch (error) {
@@ -111,6 +111,20 @@ class CustomerService {
             return customer;
         } catch (error) {
             throw new Error(`Error deleting customer: ${error.message}`);
+        }
+    }
+
+    async toggleCustomerStatus(id) {
+        try {
+            const customer = await Customer.findById(id);
+            if (!customer) {
+                throw new Error('Customer not found');
+            }
+            customer.status = customer.status === 'Active' ? 'Inactive' : 'Active';
+            await customer.save();
+            return customer;
+        } catch (error) {
+            throw new Error(`Error toggling customer status: ${error.message}`);
         }
     }
 }

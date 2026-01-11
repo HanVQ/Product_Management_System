@@ -15,6 +15,9 @@ const productTypesRoutes = require('./routes/producttypes');
 const brandsRoutes = require('./routes/brands');
 const ordersRoutes = require('./routes/orders');
 const inventoryRoutes = require('./routes/inventory');
+const productVariantsRoutes = require('./routes/productvariants');
+const sizesRoutes = require('./routes/sizes');
+const colorsRoutes = require('./routes/colors');
 const { authenticate, requireRole } = require('./middleware/auth');
 const emailService = require('./services/emailService');
 
@@ -79,6 +82,9 @@ app.use('/api/producttypes', productTypesRoutes);
 app.use('/api/brands', brandsRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/productvariants', productVariantsRoutes);
+app.use('/api/sizes', sizesRoutes);
+app.use('/api/colors', colorsRoutes);
 
 // Serve admin UI (client-side verification protects access to /api/users)
 app.get('/admin', (req, res) => {

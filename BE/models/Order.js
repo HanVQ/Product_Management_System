@@ -4,7 +4,13 @@ const orderItemSchema = new mongoose.Schema({
     product: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Product',
-        required: true
+        required: false
+    },
+    // Optional: reference a specific variant (size/color) when applicable
+    variant: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ProductVariant',
+        required: false
     },
     quantity: {
         type: Number,
@@ -18,6 +24,11 @@ const orderItemSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
+    orderNumber: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
     customer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Customer',

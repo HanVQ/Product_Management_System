@@ -34,14 +34,17 @@ window.userModule = (function () {
     const end = start + perPage;
     const pageData = filteredUsers.slice(start, end);
 
-    let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Email</th><th style="width:120px">Role</th><th style="width:120px">Provider</th><th style="width:140px">Action</th></tr></thead><tbody>';
+    let html = '<div class="table-responsive"><table><thead><tr><th style="width:50px">#</th><th>Name</th><th>Email</th><th style="width:120px">Role</th><th style="width:120px">Provider</th><th style="width:100px">Status</th><th style="width:140px">Action</th></tr></thead><tbody>';
     pageData.forEach((u, idx) => {
+      const statusClass = u.status === 'Active' ? 'status-active' : 'status-inactive';
+      const statusText = u.status || 'Active';
       html += `<tr>
         <td>${start + idx + 1}</td>
         <td>${u.name || ''}</td>
         <td>${u.email || ''}</td>
         <td>${u.role || ''}</td>
         <td>${u.provider || 'email'}</td>
+        <td><span class="status-badge ${statusClass}" onclick="toggleUserStatus('${u._id}')" style="cursor:pointer;">${statusText}</span></td>
         <td class="action"><div class="action-btns">
           <button class="btn btn-warning" onclick="openEditModal('${u._id}', '${escapeHtml(u.name || '')}', '${escapeHtml(u.email || '')}', '${u.role || 'user'}')">Edit</button>
           <button class="btn btn-danger" onclick="deleteUser('${u._id}')">Delete</button>
@@ -235,6 +238,32 @@ window.userModule = (function () {
     }
   }
 
+  async function toggleUserStatus(id) {
+    const token = getToken();
+    try {
+      const res = await fetch(`/api/users/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', authorization: token },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
+      if (data.success) {
+        loadUsers();
+        if (window.adminApp && typeof window.adminApp.showToast === 'function') {
+          adminApp.showToast(`User status changed to ${data.user.status}`);
+        }
+      } else {
+        if (window.adminApp && typeof window.adminApp.showToast === 'function') {
+          adminApp.showToast('Error updating user status: ' + data.message, 'error');
+        }
+      }
+    } catch (err) {
+      if (window.adminApp && typeof window.adminApp.showToast === 'function') {
+        adminApp.showToast('Error: ' + err.message, 'error');
+      }
+    }
+  }
+
   function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -253,6 +282,7 @@ window.userModule = (function () {
     window.closeModal = closeModal;
     window.saveUser = saveUser;
     window.deleteUser = deleteUser;
+    window.toggleUserStatus = toggleUserStatus;
     window.logout = logout;
     window.filterTable = filterTable;
     window.goToPage = goToPage;

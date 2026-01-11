@@ -30,6 +30,12 @@ const adminApp = (function () {
     if (window.inventoryModule && typeof window.inventoryModule.init === 'function' && path.includes('inventory.html')) {
       window.inventoryModule.init();
     }
+    if (window.sizeModule && typeof window.sizeModule.init === 'function' && path.includes('size.html')) {
+      window.sizeModule.init();
+    }
+    if (window.colorModule && typeof window.colorModule.init === 'function' && path.includes('color.html')) {
+      window.colorModule.init();
+    }
   }
 
   function showSidebarUser() {
@@ -69,6 +75,8 @@ const adminApp = (function () {
     document.getElementById('linkProducts').addEventListener('click', (e) => { e.preventDefault(); loadFragment('/admin/product.html'); });
     document.getElementById('linkBrands').addEventListener('click', (e) => { e.preventDefault(); loadFragment('/admin/brand.html'); });
     document.getElementById('linkProductTypes').addEventListener('click', (e) => { e.preventDefault(); loadFragment('/admin/producttype.html'); });
+    document.getElementById('linkSizes').addEventListener('click', (e) => { e.preventDefault(); loadFragment('/admin/size.html'); });
+    document.getElementById('linkColors').addEventListener('click', (e) => { e.preventDefault(); loadFragment('/admin/color.html'); });
     document.getElementById('linkOrders').addEventListener('click', (e) => { e.preventDefault(); loadFragment('/admin/order.html'); });
     document.getElementById('linkInventory').addEventListener('click', (e) => { e.preventDefault(); loadFragment('/admin/inventory.html'); });
     document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.removeItem('token'); localStorage.removeItem('user'); location = '/'; });
